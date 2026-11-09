@@ -1,0 +1,8 @@
+{
+  "name": "calculator-simulator",
+  "productName": "Calculator Simulator",
+  "version": "2026.10.28-desktop.1",
+  "description": "Giả lập máy tính khoa học dùng ngoại tuyến",
+  "main": "main.cjs",
+  "private": true
+}

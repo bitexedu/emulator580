@@ -1,0 +1,13 @@
+node_modules/
+.env
+dist/
+*.log
+
+# Cấu hình/trạng thái riêng của Claude Code trên máy này.
+.claude/
+
+# Bản text sinh từ PDF để grep cục bộ, có thể tạo lại từ manual gốc.
+docs/manual-plain.txt
+
+# Bản desktop đã đóng gói, không đưa runtime/binary vào Git.
+dist-desktop/

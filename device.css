@@ -1,0 +1,305 @@
+@font-face {
+  font-family:"Simulator LCD Numerals";
+  src:url("assets/lcd-numerals.ttf") format("truetype");
+  font-weight:400;
+  font-display:swap;
+  unicode-range:U+0020,U+0028,U+0029,U+002B,U+002D,U+002E,U+002F,U+0030,U+0031,U+0032,U+0033,U+0034,U+0035,U+0036,U+0037,U+0038,U+0039,U+003A,U+0041,U+0042,U+0043,U+0044,U+0045,U+0046,U+0048,U+0049,U+004B,U+004C,U+004D,U+004E,U+004F,U+0050,U+0052,U+0053,U+0054,U+0055,U+0056,U+0058,U+0061,U+0062,U+0063,U+0064,U+0065,U+0067,U+0068,U+0069,U+006B,U+006C,U+006D,U+006E,U+006F,U+0070,U+0071,U+0072,U+0073,U+0074,U+0075,U+0076,U+0078,U+0079,U+00D7,U+00E0,U+00E1,U+00E2,U+00EA,U+00EC,U+00F3,U+00F4,U+00F7,U+00FD,U+0110,U+01A1,U+1EA1,U+1EA3,U+1EA5,U+1EAD,U+1EBF,U+1EC7,U+1ECB,U+1ED1,U+1EE9,U+1EEF,U+1EF1,U+2212;
+}
+/* Mặt máy vector CASIO đã được người dùng cho phép dùng, bỏ wordmark CASIO.
+   Toàn vỏ375×760; vùng phím375×635 dịch xuống90px; các hotspot giữ bảng hành động trong keypad.js. */
+:root { --screen-bg:#d6e3d6; --screen-fg:#000000; --screen-glow:transparent; }
+html, body { width:100%; height:100%; overflow:hidden; overscroll-behavior:none; background:#e9ece9; }
+body { display:block; min-height:0; padding:0; background:#e9ece9; color:#23312c; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
+.app-shell { position:fixed; inset:0; padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px); display:flex; flex-direction:column; }
+.app-toolbar { flex:none; height:40px; display:flex; align-items:center; justify-content:space-between; padding:0 10px; gap:10px; }
+.app-title { font-size:13px; font-weight:650; letter-spacing:.01em; }
+.app-title span { color:#65726a; font-size:11px; font-weight:400; margin-left:6px; }
+#app-menu-button { border:0; color:#263c31; background:transparent; width:44px; height:40px; border-radius:10px; font-size:28px; line-height:1; cursor:pointer; }
+#app-menu-button:hover { background:#d9e0da; }
+.device-stage { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; padding:4px 6px 8px; }
+.calculator { position:relative; flex:none; width:min(100%,420px); aspect-ratio:375 / 760; padding:0; border:0; border-radius:9% / 4.5%; background:transparent; box-shadow:none; filter:none; overflow:visible; }
+/* Shadow belongs behind the case, never on the SVG lettering layer. */
+.calculator::before { content:""; display:block; position:absolute; inset:1% 1.5% 1.5%; border-radius:9% / 4.5%; background:#1d252b; box-shadow:0 10px 18px #1d252b25; pointer-events:none; }
+.device-face { display:block; position:absolute; inset:0; width:100%; height:100%; pointer-events:none; user-select:none; filter:none; }
+.calculator .screen-wrap { position:absolute; left:10.728%; top:14.210526%; width:78.227%; height:15.483921%; margin:0; padding:0; border:0; border-radius:3.14% / 7.83%; overflow:hidden; background:var(--screen-bg); box-shadow:none; }
+.calculator .screen-area, .calculator .screen { width:100%; height:100%; }
+.calculator .screen { aspect-ratio:auto; border-radius:0; background:var(--screen-bg); box-shadow:none; }
+.calculator .overlay { inset:0; border-radius:0; background:var(--screen-bg); }
+.calculator .screen-badges { top:1.8cqw; font-size:2.9cqw; opacity:.85; }
+.calculator .keypad { position:absolute; left:0; right:0; top:11.84211%; height:83.55263%; display:block; padding:0; margin:0; pointer-events:none; }
+.calculator .krow, .calculator .dpad { display:contents; }
+.calculator .dpad-center { display:none; }
+.calculator .key { position:absolute; width:11.82%; height:4.1%; min-height:0; margin:0; padding:0; border:0; border-radius:5px; background:transparent; box-shadow:none; color:transparent; transform:none; touch-action:manipulation; pointer-events:auto; -webkit-tap-highlight-color:transparent; user-select:none; }
+.calculator .key::before, .calculator .key > * { display:none; }
+.calculator .key:hover:not(.key-locked) { background:#ffffff18; filter:none; }
+.calculator .key:active:not(.key-locked) { background:#ffffff40; box-shadow:0 0 0 1px #ffffff70 inset; transform:none; }
+.calculator .key.active { background:#ffd76640; outline:1px solid #ffd766; outline-offset:1px; }
+.calculator .key:focus-visible { outline:2px solid #ffda72; outline-offset:2px; }
+.calculator .key-locked { opacity:1; cursor:default; }
+.calculator .key[data-action="shift"], .calculator .key[data-action="alpha"], .calculator .key[data-action="menu"], .calculator .key[data-action="on"] { width:9.34%; height:5.52%; border-radius:50%; }
+.calculator .key[data-action^="cursor-"] { clip-path:none; border-radius:35%; }
+.calculator .key[data-action="shift"] { left:9.17333%; top:28.50394%; width:9.33333%; height:5.51181%; }
+.calculator .key[data-action="alpha"] { left:21.76000%; top:28.50394%; width:9.33333%; height:5.51181%; }
+.calculator .key[data-action="menu"] { left:68.53333%; top:28.50394%; width:9.33333%; height:5.51181%; }
+.calculator .key[data-action="on"] { left:81.12000%; top:28.50394%; width:9.33333%; height:5.51181%; }
+.calculator .key[data-action="cursor-up"] { left:41.33333%; top:28.50394%; width:17.06667%; height:5.03937%; }
+.calculator .key[data-action="cursor-down"] { left:41.33333%; top:36.06299%; width:17.06667%; height:5.03937%; }
+.calculator .key[data-action="cursor-left"] { left:33.33333%; top:31.49606%; width:10.13333%; height:6.77165%; }
+.calculator .key[data-action="cursor-right"] { left:56.26667%; top:31.49606%; width:10.13333%; height:6.77165%; }
+.calculator .key[data-action="optn"] { left:8.68000%; top:38.92441%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="calc"] { left:22.80533%; top:38.92441%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="integral"] { left:65.18133%; top:38.92441%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="input-x"] { left:79.30667%; top:38.92441%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="fraction"] { left:8.68000%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="sqrt"] { left:22.80533%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="square"] { left:36.93067%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="power"] { left:51.05600%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="logn"] { left:65.18133%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="ln"] { left:79.30667%; top:45.93701%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="negative"] { left:8.68000%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="dms"] { left:22.80533%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="reciprocal"] { left:36.93067%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="sin"] { left:51.05600%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="cos"] { left:65.18133%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="tan"] { left:79.30667%; top:52.94803%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="sto"] { left:8.68000%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="eng"] { left:22.80533%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="open-paren"] { left:36.93067%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="close-paren"] { left:51.05600%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="toggle-exact"] { left:65.18133%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-action="memory-add"] { left:79.30667%; top:59.96220%; width:11.81600%; height:4.09606%; }
+.calculator .key[data-digit="7"] { left:8.68000%; top:67.48031%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="8"] { left:25.61333%; top:67.48031%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="9"] { left:42.54667%; top:67.48031%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="delete"] { left:59.48000%; top:67.48031%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="clear"] { left:76.41333%; top:67.48031%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="4"] { left:8.68000%; top:75.70079%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="5"] { left:25.61333%; top:75.70079%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="6"] { left:42.54667%; top:75.70079%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="multiply"] { left:59.48000%; top:75.70079%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="divide"] { left:76.41333%; top:75.70079%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="1"] { left:8.68000%; top:83.92126%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="2"] { left:25.61333%; top:83.92126%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="3"] { left:42.54667%; top:83.92126%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="add"] { left:59.48000%; top:83.92126%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="subtract"] { left:76.41333%; top:83.92126%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-digit="0"] { left:8.68000%; top:92.14173%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="dot"] { left:25.61333%; top:92.14173%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="times10"] { left:42.54667%; top:92.14173%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="ans"] { left:59.48000%; top:92.14173%; width:14.34667%; height:5.87402%; }
+.calculator .key[data-action="equals"] { left:76.41333%; top:92.14173%; width:14.34667%; height:5.87402%; }
+/* CASIO source grid: 47×23-pixel tiles on a48×24 pitch. */
+#mode-overlay { padding:5.96837% 5.37385% 3.9108%; }
+#mode-overlay::after { position:absolute; content:""; left:76%; top:4%; width:2.8cqw; height:2.8cqw; background:currentColor; clip-path:polygon(0 0,100% 0,50% 100%); }
+#mode-overlay[data-scroll="▲"]::after { transform:rotate(180deg); }
+#mode-overlay .overlay-list { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:calc(89.2523cqw / 191); }
+.mode-tile { display:block; width:100%; aspect-ratio:47 / 23; margin:0; padding:0; border:0; border-radius:0; background:transparent; color:var(--screen-fg); cursor:pointer; }
+.mode-icon { display:block; width:100%; height:100%; fill:currentColor; }
+.mode-tile:focus-visible { outline:1px dashed var(--screen-fg); outline-offset:1px; }
+.mode-selection { margin-top:calc(89.2523cqw / 96); font:400 7.43769cqw/1 "Simulator LCD Text",var(--lcd-font); font-synthesis:none; -webkit-font-smoothing:antialiased; white-space:nowrap; }
+
+.screen-wrap:has(#mode-overlay:not([hidden])) .screen-badges { visibility:hidden; }
+.mode-icon-text { font-size:4.62cqw; line-height:1.05; }
+@media(prefers-reduced-motion:reduce) { * { scroll-behavior:auto; } }
+
+/* [ĐÃ XÁC NHẬN 2026-11-03] CASIO: ô 11×12 pixel; vùng vẽ 192×63.
+   Container nội dung đã trừ lề LCD; font em16 theo192 cột, giữ tỷ lệ CASIO.
+   Chỉ đổi hình chữ; cấu trúc phân số/căn/mũ và logic nhập giữ nguyên. */
+.calculator .screen { --lcd-math-size:calc(100cqw / 12); }
+.calculator .math-input, .calculator .math-expression, .calculator .math-result, .calculator .math-field {
+  font-family:"Simulator LCD Numerals",var(--lcd-font);
+  font-weight:400;
+  font-synthesis:none;
+}
+
+/* Tách dải chỉ báo khỏi dòng nhập; vẫn giữ đủ hai phân số xếp tầng. */
+.calculator .screen { padding:5.96837% 5.37385% 3.9108%; }
+
+/* Six-row menus scale with the LCD, not the phone viewport width. */
+.calculator #optn-overlay .overlay-list[data-layout="scientific-grid"],
+.calculator #optn-overlay .overlay-list[data-layout="conversion-grid"] {
+  font-size:min(19px,calc(100cqw / 20));
+  line-height:1.18;
+}
+.calculator #optn-overlay[data-kind="constants"],
+.calculator #optn-overlay[data-kind="conversion"] { padding:2.7cqw 3.7cqw; }
+
+/* Bốn dòng SETUP: thêm khoảng cho dấu Việt và chân chữ. */
+.calculator #setup-overlay .overlay-list,
+.calculator #setup-overlay .overlay-title { line-height:1.1; }
+.calculator .screen-wrap[data-language="vi"] #setup-overlay .overlay-list,
+.calculator .screen-wrap[data-language="vi"] #setup-overlay .overlay-title { line-height:1.18; }
+
+/* CASIO observed 2026-11-03: green window293.3467×117.6778,
+   drawing grid192×63 at native(56,58). Glyph advance11, ink12,
+   result ink starts at row49. Identity filters and smoothing:none caused
+   jagged/thin text on macOS; the shell shadow must not rasterize the LCD. */
+.calculator .screen { -webkit-font-smoothing:antialiased; letter-spacing:0; }
+.calculator .screen, .calculator .screen-badges, .calculator .mode-corner,
+.calculator .overlay { filter:var(--lcd-filter,none); }
+.calculator .math-input, .calculator .math-expression, .calculator .math-result,
+.calculator .math-field { line-height:1; padding-bottom:0; }
+.calculator .math-result { margin-top:0; }
+.calculator .math-input:has(> .frac),
+.calculator .math-expression:has(> .frac),
+.calculator .math-result:has(> .frac) { display:flex; align-items:center; padding:0; }
+.calculator .math-result:has(> .frac) { justify-content:flex-end; margin-top:0; }
+.calculator .frac { margin:0; }
+.calculator .frac-num { min-height:.9375em; padding:.125em .09375em 0; border-bottom:.0625em solid currentColor; line-height:.75; }
+.calculator .frac-den { min-height:1.125em; padding:.25em .09375em 0; line-height:.75; }
+.calculator .screen .cursor:not(.slot-empty),
+.calculator .screen .math-input > .slot-empty.cursor,
+.calculator .screen .calc-value > .slot-empty.cursor { height:.875em; vertical-align:-.0625em; }
+.calculator .screen .cursor:not(.slot-empty)::after { width:.125em; }
+.calculator .screen .math-input > .slot-empty.cursor,
+.calculator .screen .calc-value > .slot-empty.cursor { border-left-width:.125em; }
+
+/* Fixed indicator slots, not a flex row whose contents shift the Math/D icons. */
+.calculator .screen-badges { left:5.37385%; right:5.37385%; top:3.6%; height:7.74%; opacity:1; font-size:2.75cqw; line-height:1; }
+.calculator .badge-left { position:absolute; inset:0; display:block; }
+.calculator .badge-left > span { position:absolute; top:0; margin:0; }
+.calculator #shift-badge { left:0; }
+.calculator #alpha-badge { left:4.34%; }
+.calculator #memory-badge { left:9.2%; }
+.calculator #store-badge { left:14.6%; }
+.calculator #io-badge { left:21%; top:.3cqw; width:6.6%; height:90%; }
+.calculator #angle-unit-badge { left:29.87%; width:3.3%; height:100%; padding:0; border:0; border-radius:0; }
+.calculator #angle-unit-badge[data-unit="R"] { left:33.51%; }
+.calculator #angle-unit-badge[data-unit="G"] { left:37.16%; }
+.calculator #number-format-badge { left:42.37%; }
+.calculator #engineer-badge { left:57.3%; }
+.calculator #complex-badge { left:62.17%; }
+.calculator #scroll-badge { position:absolute; left:81.62%; right:auto; top:.3cqw; font-size:3.1cqw; }
+.calculator #io-badge:not(:empty), .calculator #angle-unit-badge { color:transparent; background-position:center; background-size:100% 100%; background-repeat:no-repeat; }
+
+.calculator #io-badge:not(:empty) { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2022.1807%2010.6021%22%3E%3Ctitle%3E05_math%3C%2Ftitle%3E%3Cg%20id%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC_2%22%20data-name%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%202%22%3E%3Cg%20id%3D%22LCD%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%22%3E%3Cpolygon%20points%3D%227.391%201.442%2016.216%201.442%2016.216%200%206.301%200%203.56%208.71%201.591%204.695%200%204.695%202.853%2010.602%204.52%2010.602%207.391%201.442%22%2F%3E%3Cpolygon%20points%3D%2214.661%209.28%209.43%209.28%209.43%204.107%2013.339%204.107%2013.339%205.094%2014.661%205.094%2014.661%202.786%208.108%202.786%208.108%2010.602%2014.661%2010.602%2014.661%209.28%22%2F%3E%3Cpolygon%20points%3D%2215.601%208.325%2022.181%203.54%2020.517%201.248%2013.944%206.028%2015.601%208.325%22%2F%3E%3Cpolygon%20points%3D%2213.425%206.403%2012.674%208.698%2015.08%208.694%2013.426%206.402%2013.425%206.403%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+.calculator #angle-unit-badge[data-unit="D"] { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010.7705%2011.33791%22%3E%3Ctitle%3E06_D%3C%2Ftitle%3E%3Cg%20id%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC_2%22%20data-name%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%202%22%3E%3Cg%20id%3D%22LCD%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%22%3E%3Cpath%20d%3D%22M9.6357%2C0H1.1328A1.13361%2C1.13361%2C0%2C0%2C0%2C0%2C1.13281v9.0699a1.13348%2C1.13348%2C0%2C0%2C0%2C1.1328%2C1.1352H9.6357a1.1339%2C1.1339%2C0%2C0%2C0%2C1.1348-1.1352V1.13281A1.134%2C1.134%2C0%2C0%2C0%2C9.6357%2C0ZM5.4306%2C10.27H2.3926V1.17291H5.5508c2.6767%2C0%2C3.1582%2C1.7456%2C3.1582%2C4.4214C8.709%2C8.81741%2C7.9863%2C10.27%2C5.4306%2C10.27Z%22%2F%3E%3Cpath%20d%3D%22M5.1357%2C2.52351H4.3203v6.396h.8564c1.3379%2C0%2C1.6055-.8028%2C1.6055-3.27451C6.7822%2C3.58111%2C6.6084%2C2.52351%2C5.1357%2C2.52351Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+.calculator #angle-unit-badge[data-unit="R"] { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010.7696%2011.33791%22%3E%3Ctitle%3E07_R%3C%2Ftitle%3E%3Cg%20id%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC_2%22%20data-name%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%202%22%3E%3Cg%20id%3D%22LCD%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%22%3E%3Cpath%20d%3D%22M9.6358%2C0H1.1329A1.1337%2C1.1337%2C0%2C0%2C0%2C0%2C1.13281v9.0699a1.13356%2C1.13356%2C0%2C0%2C0%2C1.1329%2C1.1352H9.6358a1.13312%2C1.13312%2C0%2C0%2C0%2C1.1338-1.1352V1.13281A1.13325%2C1.13325%2C0%2C0%2C0%2C9.6358%2C0ZM8.8956%2C10.27H6.8086a1.70621%2C1.70621%2C0%2C0%2C1-.2412-.95549l-.0537-1.7456A1.03424%2C1.03424%2C0%2C0%2C0%2C5.376%2C6.42241H4.3458V10.27H2.419V1.17291H5.9786c1.5791%2C0%2C2.5429.79%2C2.5429%2C2.3442a1.999%2C1.999%2C0%2C0%2C1-1.5927%2C2.2427v.0254c1.3115.1655%2C1.5117.8535%2C1.539%2C2.7773.0127.9556.0664%2C1.4527.4278%2C1.6309Z%22%2F%3E%3Cpath%20d%3D%22M5.2559%2C2.52351H4.3458V5.148h.8027c.9238%2C0%2C1.4453-.38189%2C1.4453-1.36329C6.5938%2C2.94391%2C6.126%2C2.52351%2C5.2559%2C2.52351Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+.calculator #angle-unit-badge[data-unit="G"] { background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2010.7705%2011.33791%22%3E%3Ctitle%3E08_G%3C%2Ftitle%3E%3Cg%20id%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC_2%22%20data-name%3D%22%E3%83%AC%E3%82%A4%E3%83%A4%E3%83%BC%202%22%3E%3Cg%20id%3D%22LCD%E3%83%91%E3%82%BF%E3%83%BC%E3%83%B3%22%3E%3Cpath%20d%3D%22M9.6357%2C0H1.1328A1.13361%2C1.13361%2C0%2C0%2C0%2C0%2C1.13281v9.0699a1.13348%2C1.13348%2C0%2C0%2C0%2C1.1328%2C1.1352H9.6357a1.1339%2C1.1339%2C0%2C0%2C0%2C1.1348-1.1352V1.13281A1.134%2C1.134%2C0%2C0%2C0%2C9.6357%2C0ZM8.502%2C10.27H7.083V9.42921H7.0566a2.17568%2C2.17568%2C0%2C0%2C1-2.0068%2C1.0191c-2.3691%2C0-2.8379-1.6817-2.8379-4.8286%2C0-3.0581.75-4.625%2C3.2119-4.625%2C2.1143%2C0%2C2.9707%2C1.0317%2C2.9707%2C2.8794H6.5479c0-.6753-.3213-1.5289-1.0967-1.5289-.9375%2C0-1.3115.917-1.3115%2C3.1851%2C0%2C2.1914.2138%2C3.5674%2C1.3242%2C3.5674a1.359%2C1.359%2C0%2C0%2C0%2C1.1914-1.4522v-.9301H5.3838V5.36481H8.502Z%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"); }
+
+.calculator .screen:has(> .math-expression) > .math-result {
+  position:absolute; left:5.37385%; right:5.37385%; bottom:9.75%; width:auto;
+}
+
+@font-face { font-family:"Simulator LCD Text"; src:url("assets/lcd-text.ttf") format("truetype"); font-weight:400; font-display:swap; unicode-range:U+0020,U+0028,U+0029,U+002B,U+002D,U+002E,U+002F,U+0030,U+0031,U+0032,U+0033,U+0034,U+0035,U+0036,U+0037,U+0038,U+0039,U+003A,U+0041,U+0042,U+0043,U+0044,U+0045,U+0046,U+0048,U+0049,U+004B,U+004C,U+004D,U+004E,U+004F,U+0050,U+0052,U+0053,U+0054,U+0055,U+0056,U+0058,U+0061,U+0062,U+0063,U+0064,U+0065,U+0067,U+0068,U+0069,U+006B,U+006C,U+006D,U+006E,U+006F,U+0070,U+0071,U+0072,U+0073,U+0074,U+0075,U+0076,U+0078,U+0079,U+00D7,U+00E0,U+00E1,U+00E2,U+00EA,U+00EC,U+00F3,U+00F4,U+00F7,U+00FD,U+0110,U+01A1,U+1EA1,U+1EA3,U+1EA5,U+1EAD,U+1EBF,U+1EC7,U+1ECB,U+1ED1,U+1EE9,U+1EEF,U+1EF1,U+2212; }
+/* SETUP: measured16-pixel row pitch; do not use a bold desktop monospace. */
+.calculator #setup-overlay { padding:5.96837% 5.37385% 3.9108%; }
+.calculator .screen-wrap[data-language] #setup-overlay .overlay-list,
+.calculator .screen-wrap[data-language] #setup-overlay .overlay-title {
+  font-family:"Simulator LCD Text",var(--lcd-font); font-size:7.43769cqw;
+  font-weight:400; font-synthesis:none; line-height:1; letter-spacing:0;
+  -webkit-font-smoothing:antialiased;
+}
+.calculator .screen-wrap:has(#setup-overlay:not([hidden])) .screen-badges { visibility:hidden; }
+
+.calculator .screen-wrap[data-language="vi"] #setup-overlay { padding-top:5.96837%; }
+
+/* Verify: CASIO 07/11/2026 uses the LCD text row, not the small UI label. */
+.calculator .mode-corner[data-kind="verify"] {
+  right:5.37385%; bottom:9.75%;
+  font:400 7.43769cqw/1 "Simulator LCD Text",var(--lcd-font);
+  font-synthesis:none; letter-spacing:0; opacity:1;
+}
+
+/* A tight overflow clip cuts the top raster row at fractional font sizes.
+   Two source pixels of paint bleed, cancelled by margins, preserve the
+   measured ink position/row spacing and horizontal cursor scrolling.
+   Keep this after the fraction rules: their outer line also needs bleed. */
+.calculator .screen > .math-input,
+.calculator .screen > .math-expression,
+.calculator .screen > .math-result,
+.calculator .screen > .math-field { padding-block:.125em; margin-block:-.125em; }
+
+.calculator .key.keyboard-pressed:not(.key-locked) { background:#ffffff40; box-shadow:0 0 0 1px #ffffff70 inset; }
+
+#install-shortcut { margin-left:auto; flex:none; padding:7px 10px; border:1px solid #c3cec5; border-radius:8px; background:#f8fbf7; color:#294334; font:600 12px system-ui,sans-serif; cursor:pointer; }
+#install-shortcut:hover { background:#dfe9df; }
+
+
+/* Utilities sit in the blank logo area, without consuming display height. */
+.app-toolbar { position:absolute; z-index:2; left:7%; top:2.2%; height:auto; padding:0; gap:5px; justify-content:flex-start; }
+#app-menu-button { order:-1; width:32px; height:28px; font-size:23px; line-height:1; color:#eaf0ee; background:#17252bcc; border:1px solid #b2c4c644; border-radius:8px; }
+#app-menu-button:hover { background:#43585f; }
+#install-shortcut { margin:0; padding:5px 7px; font-size:11px; background:#17252bcc; color:#eaf0ee; border-color:#b2c4c644; }
+#install-shortcut:hover { background:#43585f; }
+.device-stage { padding:2px; }
+.calculator { width:100%; max-width:none; }
+@media(max-height:500px) { #install-shortcut { display:none; } .app-toolbar { top:1%; } #app-menu-button { width:26px; height:22px; font-size:20px; } }
+
+/* CASIO 03-11-2026: x² và x^2 cùng hình chữ; dùng số thường trong ô mũ.
+   Tỷ lệ 3/4, nâng 1/4 em của dòng chính; không phụ thuộc font superscript dự phòng. */
+.calculator .sup { font-size:.75em; vertical-align:.333333em; line-height:1; }
+.calculator .logn { display:inline; white-space:nowrap; }
+.calculator .log-base { font-size:.75em; vertical-align:-.25em; line-height:1; margin:0; }
+.calculator .log-argument { vertical-align:baseline; }
+.calculator .radical { margin:0 .0625em; }
+.calculator .radical-body { position:relative; border-top:0; padding:.1875em .125em 0; }
+.calculator .radical-body::before { content:""; position:absolute; top:0; left:0; right:0; height:.0625em; background:currentColor; }
+.calculator .radical-sign { position:relative; width:.625em; margin:0 -.125em .1875em 0; overflow:visible; }
+.calculator .radical-sign svg { position:absolute; bottom:0; left:0; width:100%; height:1em; overflow:visible; }
+.calculator .radical-sign::before { content:""; position:absolute; top:0; bottom:1em; left:.5em; width:.0625em; background:currentColor; }
+.calculator .math-parenthesis { border-width:.075em; }
+.calculator[data-key-highlight="true"] .key.last-pressed:not(.key-locked) { background:#122741; box-shadow:0 0 0 2px #ffe76b inset,0 0 0 2px #122741; color:white; }
+.calculator[data-key-highlight="true"] .key.last-pressed > .key-face { display:inline; font:600 4.1cqw/1 system-ui,sans-serif; color:white; }
+.calculator[data-key-highlight="true"] .key[data-digit].last-pressed > .key-face { font-size:7cqw; }
+.touch-point { display:inline-block; position:relative; width:0; height:0; padding:0; margin:0; pointer-events:none; }
+.screen-wrap[data-touch="true"] { touch-action:pinch-zoom; }
+
+.calculator .keypad { container-type:inline-size; }
+.calculator[data-key-highlight="true"] .key.key-mode.last-pressed > .key-face { font-size:2.6cqw; }
+
+/* [ĐÃ XÁC NHẬN 2026-11-06] LineI: kết quả nằm ngay dưới biểu thức,
+   cách một dòng chữ, không dùng vị trí đáy dành cho MathI.
+   Giữ paint bleed chống cắt nét; không đổi tính toán hoặc các màn mode. */
+.calculator .screen:has(> .math-expression.line-output) > .math-result {
+  position:static; width:100%;
+}
+
+/* Phân số LineI: góc LCD dưới-phải, cùng cỡ ở biểu thức và kết quả. */
+.line-fraction-separator { width:.55em; height:1em; vertical-align:-.12em; flex-shrink:0; }
+
+/* CASIO 06-11-2026, BUG-072: compact polynomial template above a full
+   draft line. Fixed 22/32px styles clipped the editor on small LCDs. */
+.calculator .coefficient-polynomial .coefficient-heading,
+.calculator .coefficient-polynomial .coef-template {
+  font-family:"Simulator LCD Text",var(--lcd-font); font-weight:400;
+  font-synthesis:none; font-size:calc(100cqw / 16); line-height:1;
+  padding-block:.125em; margin-block:-.025em; letter-spacing:0;
+}
+.calculator .screen:has(.coefficient-polynomial) > .screen-line-draft,
+.calculator .screen:has(.coefficient-polynomial) > .screen-line-result {
+  flex-shrink:0; font-family:"Simulator LCD Numerals",var(--lcd-font);
+  font-size:var(--lcd-math-size); font-weight:400; line-height:1;
+  padding-block:.125em; margin-block:0;
+}
+.inequality-result { position:relative; text-align:left; flex-shrink:0; }
+.inequality-scroll-viewport { display:block; overflow:hidden; width:100%; }
+.inequality-scroll-content { display:inline-block; white-space:nowrap; padding-block:.2em; }
+.inequality-result::before, .inequality-result::after {
+  position:absolute; z-index:1; bottom:.2em; width:.65em;
+  background:var(--screen-bg); line-height:1; text-align:center;
+}
+.inequality-result[data-left="true"]::before { content:"◂"; left:0; }
+.inequality-result[data-right="true"]::after { content:"▸"; right:0; }
+
+/* BUG-071, CASIO 06-11-2026: 11 prefixes, four rows in three columns. */
+.calculator #optn-overlay[data-kind="engineering"] { padding:5.96837% 5.37385% 3.9108%; }
+.calculator #optn-overlay[data-kind="engineering"] .overlay-list {
+  font-family:"Simulator LCD Text",var(--lcd-font); font-weight:400;
+  font-size:7.43769cqw; font-synthesis:none; line-height:1;
+  letter-spacing:0; column-gap:0;
+}
+.calculator #optn-overlay[data-kind="engineering"]::after {
+  content:"◀"; position:absolute; top:1.2%; right:26%; font-size:2.7cqw;
+}
+.screen-wrap:has(#optn-overlay[data-kind="engineering"]:not([hidden])) .screen-badges { visibility:hidden; }
+
+/* CASIO 07/11: thông báo tập nghiệm dùng cùng lưới chữ LCD, ở hàng cuối.
+   Cỡ cũ dùng Arial nhỏ và đậm nên chỉ chiếm khoảng nửa chiều rộng chuẩn. */
+.calculator .screen-terminal-message {
+  font:400 var(--lcd-math-size)/1 "Simulator LCD Text",var(--lcd-font);
+  font-synthesis:none; letter-spacing:0; flex-shrink:0;
+}

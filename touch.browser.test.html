@@ -1,0 +1,400 @@
+<!doctype html><html lang="vi"><meta charset="utf-8"><title>Kiểm tra cảm ứng và tiện ích</title><style>body{font:15px/1.6 system-ui;margin:20px;color:#203c3a}button{padding:14px}iframe{width:390px;height:844px;border:1px solid #bac9bd}#results{white-space:pre-wrap;max-height:70vh;overflow:auto}main{display:flex;gap:24px;flex-wrap:wrap}</style><h1>Kiểm tra tích hợp cảm ứng / tiện ích</h1><p>Sự kiện chạm tổng hợp trong DOM thật; không thay kiểm thử iPhone vật lý.</p><button id="run">Chạy kiểm tra</button><p id="summary" role="status"></p><main><pre id="results" role="status"></pre><iframe title="Máy tính kiểm thử" src="index.html"></iframe></main><script>
+const run=document.querySelector('#run'),out=document.querySelector('#results'),frame=document.querySelector('iframe');
+const params=new URLSearchParams(location.search),target=new URL(params.get('app')||'index.html',location.href);
+if(target.origin!==location.origin)throw new Error('Chỉ kiểm ứng dụng cùng origin');
+frame.src=target.href;
+for(const axis of ['width','height']){const n=Number(params.get(axis));if(n>=280&&n<=1600)frame.style[axis]=n+'px';}
+
+run.onclick=async()=>{run.disabled=true;out.textContent='';let failures=0,passed=0;const w=frame.contentWindow,d=w.document;
+const tick=()=>new Promise(r=>setTimeout(r,0));
+function check(label,ok,actual){if(ok)passed++;else failures++;out.textContent+=(ok?'PASS ':'FAIL ')+label+(ok?'':' — '+actual)+'\n';}
+const key=k=>d.querySelector('.key['+(/^\d$/.test(k)?'data-digit="'+k:'data-action="'+k)+'"]');
+const point=el=>{const r=el.getBoundingClientRect();return {clientX:r.x+r.width/2,clientY:r.y+r.height/2};};
+function pointer(el,type,extra={}){el.dispatchEvent(new w.PointerEvent(type,{bubbles:true,cancelable:true,pointerType:'touch',pointerId:1,isPrimary:true,...point(el),...extra}));}
+function tap(el){pointer(el,'pointerdown');pointer(el,'pointerup');el.dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1,...point(el)}));}
+const text=()=>d.querySelector('#screen').textContent.replace(/[\s|]/g,'');
+try {
+ await d.fonts.ready;
+ for(let n=0;n<50;n++) {for(const k of ['clear','7','multiply','8','equals'])tap(key(k));check('Vòng '+(n+1)+': 7×8=56',d.querySelector('.math-result')?.textContent.trim()==='56',text());}
+ for(let n=0;n<6;n++) {for(const k of ['clear','6','power','6','equals'])tap(key(k));check('Chạm: 6^6=46656, lần '+(n+1),d.querySelector('.math-result')?.textContent.trim()==='46656',text());}
+ key('clear').click();for(const k of ['6','^','6','Enter'])d.dispatchEvent(new w.KeyboardEvent('keydown',{key:k,code:k,bubbles:true,cancelable:true}));check('Bàn phím PC: 6^6=46656',d.querySelector('.math-result')?.textContent.trim()==='46656',text());
+ // [ĐÃ XÁC NHẬN 2026-11-04] Chuỗi phím từ bộ chuyên môn, kết quả CASIO
+ // đã lưu trong docs/qa/2026-11-04-full-suite; ở đây chạy bằng PointerEvent.
+ const labels={n:'S⇔D',b:'ENG',k:'cos',K:'×10ˣ',o:'DEL',Q:'ALPHA',J:'STO',z:'(-)',x:'°′″',M:'Ans',T:'OPTN',r:'CALC','!':'◀',q:'SHIFT',w:'MENU',s:'√',y:'∫dx','[':'x',a:'□/□',d:'x²',p:'−',E:'▲',R:'▼','$':'▶',C:'AC'};
+ const press=seq=>{for(const ch of seq){const k=[...d.querySelectorAll('.key')].find(k=>k.getAttribute('aria-label')===(labels[ch]||ch));if(!k)throw Error('Thiếu phím '+ch);tap(k);}};
+ for(const [id,seq,expected] of [
+  ['F027','C2a3$+qa1$1R2=','136'],['F028','C2a3$+qa1$1R2=','136'],
+  ['F122','Cq[[R10E5=','ArgumentERROR'],
+  ['F130','Cyq([dp3[Rp15E15=','2259'],['F131','Cyq([dp3[Rp18E12=','2799'],
+  ['F132','Cyq([dp2[Rp15E15=','67583'],['F133','Cyq([dp[Rp15E15=','67513'],
+  ['F134','Cyq(q([dp4[+3$p([+3)R0E5=','1096'],['F135','Cyq(3a[$$$1E10=','6.907755279'],
+  ['F137','Cy1aq([p1$+q([p2$$$0E5=','2.522261219'],
+  ['F126','Cqyq([dp3[+2$$1=','TimeOut'],['F119','C'+'+p'.repeat(70)+'=','StackERROR']
+ ]){press(seq);const actual=d.querySelector('.math-result')?.textContent.replace(/\s/g,'')||text();check('Chạm '+id,expected.includes('ERROR')||expected==='TimeOut'?actual.includes(expected):actual===expected,actual);}
+ // CASIO07/11: modifier switching must not invoke the wrong expression key.
+ for(const [label,seq,expected]of [
+  ['ALPHA SHIFT','Qqz2','log(2'],['ALPHA toggle','QQz5','-5'],
+  ['ALPHA digit','Q7',''],['SHIFT digit','q1',''],['STO SHIFT','5Jqz','5log('],
+  ['ALPHA power','6Q^6=','66'],['SHIFT ALPHA','qQz5','A5'],
+  ['ALPHA left','12Q!3','132'],['SHIFT left','12q!3','132'],
+  ['UNDO input','12Qo','1'],['UNDO delete','12oQo','12'],['ALPHA equals','1+2Q=','3']
+ ]){
+  press('w1C'+seq);
+  const actual=(seq.endsWith('=')?d.querySelector('.math-result')?.textContent:text())?.replace(/[\s−]/g,c=>c==='−'?'-':'');
+  check('Modifier '+label,actual===expected,text());
+ }
+ press('w1Cq');check('SHIFT badge',d.querySelector('#shift-badge').textContent==='S',text());
+ press('qQ');check('ALPHA badge',d.querySelector('#alpha-badge').textContent==='A'&&d.querySelector('#shift-badge').textContent==='',text());
+ press('Q');check('ALPHA toggle badge',d.querySelector('#alpha-badge').textContent==='',text());
+ press('qww');check('BUG-012 MENU giữ SETUP',!d.querySelector('#setup-overlay').hidden&&d.querySelector('#mode-overlay').hidden,text());
+ press('Cw');check('BUG-012 AC rồi MENU',!d.querySelector('#mode-overlay').hidden,text());
+ press('1CqT');check('SHIFT OPTN bỏ qua',d.querySelector('#optn-overlay').hidden,text());
+ press('w1C');
+ // Vertical navigation within centered fractions (CASIO07/11).
+ for(const [label,seq,expected]of [
+  ['source','a1+s2R3','1+23'],['return root','a1+s2R3E9','1+923'],
+  ['flat up','a12345R6E9','1239456'],['flat down','a1R12345E!R9','1129345'],
+  ['even','a12R6E9','1926'],['five-two','a12345R67E9','12394567'],
+  ['root first','as12$+3R4E9','129+34'],['start','a12345R6!E9','1293456']
+ ]){press('w1C'+seq);check('BUG-005 '+label,text()===expected,text());}
+ press('w1Cs2');check('BUG-019 caret inside root',!!d.querySelector('.radical-body .cursor'),text());
+ press('w1CQ÷!2$6q)3=');check('BUG-023 LCM edit',d.querySelector('.math-result')?.textContent.trim()==='12',text());
+ for(const direction of ['!','$']){
+  press('w1CqwRR11w8[=R50=='+direction);
+  check('BUG-011 Goto '+direction,text().startsWith('f(x)=x'),text());
+ }
+ press('w1C');
+ // BUG-013: Goto points at invalid unary minus, including nested slots.
+ for(const [label,seq,expected]of [
+  ['source','3z5=','SyntaxERROR'],['Goto','3z5=!9','39-5'],
+  ['repair multiply','3z5=!×=','-15'],['repair right','12z3=$×=','-36'],
+  ['repair root','s9z5=!+=','2'],['repair fraction','a3z5R2=$×=','-152'],
+  ['Math ERROR control','1÷0=!9','1÷09']
+ ]){
+  press('w1C'+seq);
+  const actual=(d.querySelector('.math-result')?.textContent||text()).replace(/[\s−]/g,c=>c==='−'?'-':'');
+  check('BUG-013 '+label,expected==='SyntaxERROR'?actual.includes(expected):actual===expected,actual);
+ }
+ press('w1C');
+ // [TOÁN HỌC 2026-11-09] CASIO observations are kept separately.
+ const cubicExpanded='[^3$p2[+2',cubicFactored='[([dp2)+2';
+ for(const [id,formula,seed]of [
+  ['computed',cubicExpanded,'1.039016174p1.3649Kz10'],
+  ['lower',cubicExpanded,'1.039016173862'],['upper',cubicExpanded,'1.039016173865'],
+  ['factored',cubicFactored,'1.03901617386351'],['factored zero',cubicFactored,'0']
+ ]){
+  press('w1C'+formula+'qr'+seed+'==');
+  check('SOLVE cubic '+id+' kết thúc với nghiệm thật',text().includes('x=-1.769292354')&&!text().includes('Continue'),text());
+ }
+ press('CM+1.76929235423863=');
+ check('SOLVE cubic lưu Ans đến 15 chữ số',d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ press('C[+1.76929235423863=');
+ check('SOLVE cubic lưu x đến 15 chữ số',d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ press('w1C[^3$p2[+3.9qr0==');
+ check('SOLVE cubic giữ Continue khi đang tiến về nghiệm',text().includes('Continue'),text());
+ press('=');
+ check('SOLVE cubic Continue tìm được nghiệm −1.989939372',text().includes('x=-1.989939372')&&!text().includes('Continue'),text());
+ press('w1C');
+ // BUG-064: mathematical no-root policy, not CASIO numeric compatibility.
+ const source064='(2[p1)dQr4[([p1)';
+ for(const [formula,seed]of [[source064,'0'],['(3[p1)dQr3[(3[p2)','0'],['(4[p1)dQr4[(4[p2)','0'],['(4[p1)dQr4[(4[p2)','10000000']]){
+  press('w1C9=C'+formula+'qr'+seed+'==');check('BUG-064 no false root '+formula+seed,text().includes('CannotSolve'),text());
+  press('CM=');check('BUG-064 preserve Ans '+formula+seed,d.querySelector('.math-result')?.textContent.trim()==='9',text());
+  press('C[=');check('BUG-064 preserve x '+formula+seed,d.querySelector('.math-result')?.textContent.trim()===seed,text());
+ }
+ for(const [term,seed,expected,ans]of [['[','0','1','1'],['1','7','7','7'],['2[','0','0.5','12']]){
+  press('w1C9=C'+source064+'+'+term+'qr'+seed+'==');check('BUG-064 real/identity control '+term,text().includes('x='+expected),text());
+  press('CM=');check('BUG-064 Ans after confirmation '+term,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===ans,text());
+ }
+ press('w1C'+source064+'qr0==!+[qr0==');check('BUG-064 Goto repair',text().includes('x=1'),text());
+ press('w1C');
+ // [ĐÃ XÁC NHẬN 2026-11-07] Remaining source display/settings tickets.
+ for(const mode of ['3','4']){
+  press('w1Cqw1'+mode+'(1+s2$)÷s2');
+  check('BUG-007/008 LineI input '+mode,text()==='(1+√(2)÷√(2'&&!d.querySelector('.radical'),text());
+  press('=');await tick();
+  const er=d.querySelector('.math-expression').getBoundingClientRect(),rr=d.querySelector('.math-result').getBoundingClientRect(),font=parseFloat(w.getComputedStyle(d.querySelector('.math-expression')).fontSize);
+  check('BUG-007/008 source result next line '+mode,d.querySelector('.math-result').textContent.trim()==='2'&&Math.abs((rr.top-er.top)/font-1)<.08,text());
+  press('C(1+s2))÷s2=');check('BUG-007/008 complete parentheses '+mode,d.querySelector('.math-result').textContent.trim()==='1.707106781',text());
+ }
+ press('w1Cqw11(a1+2R3$)');await tick();
+ const fractionRect=d.querySelector('.frac').getBoundingClientRect(),parenRects=[...d.querySelectorAll('.math-parenthesis')].map(e=>e.getBoundingClientRect());
+ check('BUG-010 parentheses enclose numerator and denominator',parenRects.length===2&&parenRects.every(r=>r.top<=fractionRect.top+.5&&r.bottom>=fractionRect.bottom-.5)&&d.querySelectorAll('.cursor').length===1,JSON.stringify({fractionRect,parenRects}));
+ press('C2x0x30x');check('BUG-016 three input degree marks',text()==='2°0°30°',text());
+ press('=');check('BUG-016 DMS result',d.querySelector('.math-result').textContent.replace(/\s/g,'')==='2°0′30″',text());
+ press('C2[+8r1');await tick();
+ const calcField=d.querySelector('.calc-input-field'),calcLabel=calcField.firstElementChild.getBoundingClientRect(),calcValue=calcField.querySelector('.calc-value').getBoundingClientRect(),calcFont=parseFloat(w.getComputedStyle(calcField).fontSize);
+ check('BUG-017 value adjacent to variable label',calcValue.left-calcLabel.right>=-.5&&calcValue.left-calcLabel.right<calcFont*.25&&Math.abs(calcValue.bottom-calcLabel.bottom)<calcFont*.25&&calcField.textContent.replace(/[\s|]/g,'')==='x=1',JSON.stringify({calcLabel,calcValue}));
+ press('==');check('BUG-017 CALC result10',d.querySelector('.math-result').textContent.trim()==='10',text());
+ press('w1Cs2$+1');await tick();
+ const input018=d.querySelector('.math-input'),body018=d.querySelector('.radical-body');
+ const glyphRect=node=>{const r=d.createRange();r.selectNodeContents(node);return r.getBoundingClientRect();};
+ const rootDigit=glyphRect([...body018.childNodes].find(n=>n.nodeType===3&&n.textContent==='2')),outsideDigit=glyphRect([...input018.childNodes].find(n=>n.nodeType===3&&n.textContent==='1'));
+ check('BUG-018 root digit and following number share baseline',Math.abs(rootDigit.bottom-outsideDigit.bottom)<.5,JSON.stringify({rootDigit,outsideDigit}));
+ press('Cz3p');await tick();
+ const negGlyph=glyphRect(d.querySelector('.unary-negative').firstChild),minusGlyph=glyphRect([...d.querySelector('.math-input').childNodes].find(n=>n.nodeType===3&&n.textContent==='-'));
+ check('BUG-020 unary negative is visibly shorter',negGlyph.width>0&&negGlyph.width<minusGlyph.width*.8,JSON.stringify({negGlyph,minusGlyph}));
+ press('2=');check('BUG-020 negative and subtraction give -5',d.querySelector('.math-result').textContent.trim()==='-5',text());
+ for(const [mode,expected]of [['1','i'],['2','']]){press('w1CqwR4'+mode+'w922');check('BUG-026 complex indicator '+mode,d.querySelector('#complex-badge').textContent===expected,d.querySelector('#complex-badge').textContent);}
+ press('w1Cw');check('BUG-001 first page order unchanged',[...d.querySelectorAll('#mode-list button')].map(e=>e.getAttribute('aria-label')).join('|')==='1: Calculate|2: Complex|3: Base-N|4: Matrix|5: Vector|6: Statistics|7: Distribution|8: Table',d.querySelector('#mode-list').textContent);
+ press('1C');
+ // BUG-006: exact common denominator, signs, storage and S-D.
+ for(const [label,seq,expected]of [
+  ['source','qw11a1+s2$Rs2=','2+22'],['decimal','a1+s2$Rs2=n','1.707106781'],
+  ['restore','a1+s2$Rs2=nn','2+22'],['stored square','a1+s2$Rs2=JzCQzd=','3+222'],
+  ['positive coefficient','1÷2+s2$÷3=','3+226'],['negative coefficient','1÷2ps2$÷3=','3−226'],
+  ['negative result','z(a1+s2$Rs2$$)=','−2+22'],['simplified root','a2+s8$Rs2=','2+2']
+ ]){press('w1C'+seq);check('BUG-006 '+label,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===expected,text());}
+ press('w1C');
+ // Exact expression entry: live CASIO source cases, 07/11.
+ for(const [label,seq,expected]of [
+  ['009 pi','qKa2=','12π'],['014 surds','(s2$+2)×s3=','6+23'],
+  ['015 improper','2a3$+qa1$1$2=','136'],['015 mixed','2a3$+qa1$1$2=qn','216'],
+  ['015 roundtrip','2a3$+qa1$1$2=qnqn','136'],
+  ['022 third','0.Qs3=','13'],['022 sixth','0.1Qs6=','16']
+ ]){press('w1C'+seq);check('Nhập '+label,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===expected,text());}
+ press('w1CqKa');check('BUG-009 pi numerator',d.querySelector('.frac .frac-num')?.textContent.includes('π')&&!d.querySelector('.mixed'),text());
+ press('w1CqJ');
+ check('BUG-021 ten variables',[...d.querySelectorAll('#recall-list li')].map(el=>el.textContent.split('=')[0]).join(',')==='A,B,C,D,E,F,M,x,y,z',text());
+ const rr=d.querySelector('#recall-list').getBoundingClientRect(),sr=d.querySelector('#screen').getBoundingClientRect();
+ check('BUG-021 recall fits LCD',rr.bottom<=sr.bottom+1&&rr.top>=sr.top-1,JSON.stringify({rr:rr.toJSON(),sr:sr.toJSON()}));
+ press('w1C');
+ // BUG-024: giá trị nhỏ phải còn nguyên qua phím STO/ALPHA và chuyển mode.
+ for(const [label,seq,expected]of [
+  ['nguồn dấu trừ','w2s23$p23bJzCQz=','√23−23i'],
+  ['nguồn dấu cộng','w2s23$+23bJzCQz=','√23+23i'],
+  ['số nhỏ lưu A','w20.0000000000001bJzCQz=','1×10⁻¹³i'],
+  ['nhân lại biến nhỏ','w20.0000000000001bJzCQz×10000000000000=','i'],
+  ['rời Complex giữ phần thực nhỏ','w20.0000000000001+2bJzw1Qz=','1×10⁻¹³'],
+  ['bình phương biến B','w21+2bJxCQxd=','−3+4i']
+ ]){press('w1C'+seq);check('BUG-024 '+label,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===expected,text());}
+ press('w1C');
+ // BUG-025: nguồn CASIO và nghiệm toán học ở điểm đầu khác.
+ for(const [label,rhs,seed,target]of [['nguồn',4,'2qK',2*Math.PI],['x0=5',4,'5',2*Math.PI],['Continue',2,'2',Math.PI]]){
+  press('w1Cqw22ys1pk2[)$$0$[$Qr'+rhs+'s2qr'+seed+'==');
+  if(text().includes('Continue'))press('=');
+  check('BUG-025 SOLVE '+label,text().includes('x=')&&!text().includes('Continue')&&!text().includes('Out'),text());
+  press('C[=');const x=Number(d.querySelector('.math-result')?.textContent.trim());
+  check('BUG-025 x lưu '+label,Math.abs(x-target)<5e-7,text());
+ }
+ for(const power of [13,30]){
+  press('w1Cy0.'+'0'.repeat(power-1)+'1$0$1=');
+  check('BUG-025 tích phân nhỏ '+power,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===(power===13?'1×10⁻¹³':'1×10⁻³⁰'),text());
+ }
+ press('w1Cqw21');
+ // BUG-027: nghiệm, đổi dạng và dùng lại nghiệm được lưu.
+ press('w1Cw9241=0=z7=0=12==');
+ for(const expected of ['x₁=2','x₂=3','x₃=−3','x₄=−2']){
+  check('BUG-027 nguồn '+expected,text().endsWith(expected),text());press('=');
+ }
+ press('w1Cw9241=0=z7=0=12===');
+ check('BUG-027 nghiệm thứ hai có căn',!!d.querySelector('.radical'),text());
+ press('n');check('BUG-027 thập phân',text().endsWith('x₂=1.732050808'),text());
+ press('nJzw1CQzd=');check('BUG-027 lưu rồi bình phương',d.querySelector('.math-result')?.textContent.trim()==='3',text());
+ press('w1C');
+ // CASIO07/11: menu chung ở editor/calc giữ đúng trang khi bấm ◀.
+ for(const [context,entry,pages]of [
+  ['matrix-editor','w4122','R'],['matrix-calc','w4122C','RR'],
+  ['statistics-editor','w61','R'],['statistics-calc','w61C','RR'],
+  ['regression-editor','w62','RR'],['regression-calc','w62C','RR'],
+  ['vector-editor','w512','R'],['vector-calc','w512C','RR'],
+  ['calculate','w1',''],['verify','wx','R']
+ ])for(const child of ['1','2','3']){
+  press('w1C'+entry+'7');const draft=text();press('T'+pages+child+'!');
+  const common=d.querySelector('#optn-list').textContent.replace(/\s/g,'');
+  check('OPTN ◀ '+context+' mục'+child,common==='1:HyperbolicFunc2:AngleUnit3:EngineerSymbol'&&text()===draft,common+' / '+text());
+  press('C');
+ }
+ press('w1C');
+
+ // CASIO07/11: nghiệm hẹp vẫn tồn tại; thông báo ở hàng cuối, đủ dấu Việt.
+ press('w1Cwz221=z0.0000000001=0==');
+ check('BPT không làm mất khoảng nghiệm hẹp',!!d.querySelector('.inequality-result')&&!text().includes('NoSolution'),text());
+ for(const [language,all,none]of [['1','AllRealNumbers','NoSolution'],['2','Tấtcảsốthực','Vônghiệm']]){
+  press('qwE1'+language+'wz211=0=1==');await d.fonts.ready;
+  const message=d.querySelector('.screen-terminal-message'),style=w.getComputedStyle(message);
+  check('BUG-039 thông báo mọi số thực '+language,text()===all,text());
+  check('BUG-039 dùng lưới font LCD '+language,style.fontFamily.includes('Simulator LCD Text')&&style.fontWeight==='400',style.fontFamily);
+  check('BUG-039 tỷ lệ cỡ chữ '+language,Math.abs(parseFloat(style.fontSize)/(d.querySelector('#screen').clientWidth-parseFloat(w.getComputedStyle(d.querySelector('#screen')).paddingLeft)-parseFloat(w.getComputedStyle(d.querySelector('#screen')).paddingRight))-1/12)<.001,style.fontSize);
+  press('wz221=0=1==');check('BUG-039 thông báo vô nghiệm '+language,text()===none,text());
+ }
+ press('qwE11w1C');
+ // CASIO07/11: MENU chỉ bị chặn ở chọn/định cỡ, vẫn mở trong editor.
+ for(const [label,seq]of [['matrix','w4'],['matrix rows','w41'],['matrix cols','w412'],['matrix edit','w4122CT2'],['vector','w5'],['vector dimension','w51'],['vector edit','w512CT2']]){
+  press('w1C'+seq);const before=text();press('w');check('BUG-040 khóa '+label,d.querySelector('#mode-overlay').hidden&&text()===before,text());press('Cw1C');
+ }
+ for(const seq of ['w4122','w512']){press(seq+'7w');check('BUG-040 cho MENU ở editor '+seq,!d.querySelector('#mode-overlay').hidden,text());press('1C');}
+ // BUG-041: ba hàng trong LCD; draft nằm ngay ô đang nhập, cuộn giữ giá trị.
+ for(const language of ['1','2']){
+  press('w1CqwE1'+language+'w7236');
+  const rows=()=>[...d.querySelectorAll('.distribution-field')];
+  const fits=()=>{const lcd=d.querySelector('#screen').getBoundingClientRect();return rows().every(el=>{const r=el.getBoundingClientRect();return r.top>=lcd.top&&r.bottom<=lcd.bottom&&r.right<=lcd.right;});};
+  check('BUG-041 draft36 đúng ô '+language,rows().length===3&&rows()[0].querySelector('.distribution-field-value').textContent.replace(/[\s|]/g,'')==='36'&&fits(),text());
+  press('=40=1=38.5=');
+  check('BUG-041 cuộn tới μ '+language,rows().length===3&&rows()[2].textContent.replace(/\s/g,'')==='μ:38.5'&&fits(),text());
+  press('EEE');
+  check('BUG-041 trở lại cận dưới '+language,rows()[0].textContent.replace(/\s/g,'').endsWith(':36')&&rows()[1].textContent.replace(/\s/g,'').endsWith(':40')&&fits(),text());
+ }
+ press('w1CqwE11');
+ // BUG-044 CODATA2022: menu, kết quả, Ans/STO và phép tính liên quan.
+ for(const [label,seq,expected]of [
+  ['h','q711=','6.62607015×10⁻³⁴'],['G','q717=','6.6743×10⁻¹¹'],['NA','q743=','6.02214076×10²³'],
+  ['F=NAe','q742÷q743÷q723=','1'],['R=NAk','q746÷q743÷q744=','1'],
+  ['Ans','q743=CM÷q743=','1'],['STO','q711=J[C[÷q711=','1']
+ ]){press('w1C'+seq);check('BUG-044 '+label,d.querySelector('.math-result')?.textContent.replace(/\s/g,'')===expected,text());}
+ press('w1C');
+ // TABLE032/033/036: pointer events exercise the same UI path as the keys.
+ for(const [label,seq,expected]of [
+   ['TABLE + tại .3','qwRR11w81÷(x−0.3)=0=0.2=0.1==E+E$','ERROR'],
+   ['TABLE = tại .3','qwRR11w81÷(x−0.3)=0=0.2=0.1==E=E$','ERROR'],
+   ['TABLE − tại .3','qwRR11w81÷(x−0.3)=0=0.4=0.1==E−E$','ERROR'],
+   ['TABLE sinh tại .3','qwRR11w81÷(x−0.3)=0=0.3=0.1==RRR$','ERROR'],
+   ['TABLE điểm gần .3','qwRR11w81÷(x−0.3)=0.300000001=0.300000001=0.1==$','1000000000']
+ ]){press('w1C'+seq.replaceAll('x','['));check(label,d.querySelector('.data-value')?.textContent===expected,text());}
+ press('w1CqwRR11w8qyk2[$[==');check('BUG-033 thiếu ngoặc báo Syntax ERROR',text().includes('SyntaxERROR'),text());
+ press('w1CqwRR12w8y[+2$0$[=[=C');check('BUG-036 AC về f',text().startsWith('f(x)='),text());
+ press('=');check('BUG-036 vẫn giữ g=x',text()==='g(x)=x',text());
+ press('==C');check('BUG-036 AC từ bảng về f',text().startsWith('f(x)='),text());
+ press('w1C');
+
+ // [TOÁN HỌC 2026-11-07] BUG-042/043; chuẩn erfc/Inverse độc lập.
+ for(const [label,seq,expected] of [
+  ['BUG-042 Normal CD','w7236=40=s4.8=38.5==','0.6263020905'],
+  ['BUG-043 Inverse','w730.1=s4.8=38.5==','35.6922612'],
+  ['Normal CD đuôi phải','w729=10=1=0==','1.128512207×10⁻¹⁹'],
+  ['Normal CD đuôi trái','w72z10=z9=1=0==','1.128512207×10⁻¹⁹'],
+  ['Inverse xác suất1e-99','w731Kz99=1=0==','-21.16517934'],
+  ['Inverse giữ Ans','w1M=','-21.16517934']
+ ]){press(seq);check(label,(d.querySelector('.math-result')?.textContent.replace(/\s/g,'') ?? text().replace(/^(?:P|xInv)=/,''))===expected,text());}
+ press('w1C');
+ // [ĐÃ XÁC NHẬN 2026-11-07] BUG-045–048: Verify, STO, 199 ký tự.
+ press('w1C7J[wx');
+ check('BUG-045 Verify màn trống',d.querySelector('#mode-corner').textContent==='Verify',text());
+ press('6J');check('BUG-046 STO chờ trong Verify',!d.querySelector('#store-badge').hidden,text());
+ press('[');check('BUG-046 giữ nhập 6',text()==='6'&&d.querySelector('#store-badge').hidden,text());
+ press('w1[=');check('BUG-046 x vẫn bằng 7',d.querySelector('.math-result')?.textContent.trim()==='7',text());
+ press('CJ');check('BUG-047 STO trên dòng trống',!d.querySelector('#store-badge').hidden,text());
+ press('C'+'p'.repeat(205));check('BUG-048 chỉ nhận 199 dấu trừ',text()==='-'.repeat(199),text().length);
+ press('o'.repeat(198));check('BUG-048 xóa 198 còn 1 dấu',text()==='-',text());
+ press('1=');check('BUG-048 nhập tiếp sau xóa',d.querySelector('.math-result')?.textContent.trim()==='-1',text());
+ press('C5J7[');check('STO phím số không ghi nhầm x',text()==='5x'&&d.querySelector('#store-badge').hidden,text());
+ press('C5J+[');check('STO toán tử không ghi nhầm x',text()==='5x',text());
+ press('CJC');
+ // [TOÁN HỌC 2026-11-07] Họ BUG-049–052: nguyên hàm cho 1/24000.
+ press('Cyq([dp0.05[$p[d+0.05[$z15$15=');
+ check('Tích phân vùng hẹp khác 0',d.querySelector('.math-result')?.textContent.replace(/\s/g,'')==='4.166666667×10⁻⁵',text());
+ press('Cyq([dp0.05[$p[d+0.05[$15$z15=');
+ check('Tích phân đảo cận vùng hẹp',d.querySelector('.math-result')?.textContent.replace(/\s/g,'')==='-4.166666667×10⁻⁵',text());
+ // [ĐÃ XÁC NHẬN 2026-11-06] BUG-065/066: một dòng giữa nhập và kết quả
+ // ở LineI; MathI vẫn đặt kết quả dưới LCD. Đo DOM thật để bắt lỗi CSS.
+ for(const mode of ['1','2','3','4']) {
+  press('qw1'+mode+'C1+2=');await tick();
+  const expression=d.querySelector('.math-expression'),result=d.querySelector('.math-result');
+  const font=Number.parseFloat(w.getComputedStyle(expression).fontSize);
+  const lineGap=(result.getBoundingClientRect().top-expression.getBoundingClientRect().top)/font;
+  check('Bố cục Input/Output '+mode,result.textContent.trim()==='3'&&(Number(mode)>2?Math.abs(lineGap-1)<.08:lineGap>2),lineGap);
+ }
+ for(const mode of ['3','4']) {
+  press('qw1'+mode+'C(1+s2))÷s2)=');
+  check('BUG-065/066 đáp số chế độ '+mode,d.querySelector('.math-result')?.textContent.trim()==='1.707106781',text());
+  press('Cqa');check('BUG-068 dòng trống chế độ '+mode,text()==='',text());
+  press('5qa+1=');check('BUG-068 nhập tiếp chế độ '+mode,d.querySelector('.math-result')?.textContent.trim()==='6',text());
+  press('Ca');check('BUG-067 dấu phân số và con trỏ '+mode,text()==='┘'&&!!d.querySelector('.line-fraction-separator'),text());
+  press('C1a2a3=');check('BUG-067 hỗn số một dòng '+mode,d.querySelector('.math-result')?.textContent.trim()===(mode==='3'?'5┘3':'1.666666667'),text());
+  press('C2a3+1a6=');check('BUG-067 cộng phân số '+mode,d.querySelector('.math-result')?.textContent.trim()===(mode==='3'?'5┘6':'0.8333333333'),text());
+
+ }
+ press('qw11C');
+ // [ĐÃ XÁC NHẬN 2026-11-06] BUG-069/070: bấm đủ STO + biến,
+ // giữ màn nghiệm đang chọn, rồi đọc lại từ Calculate; không chỉ thử engine.
+ press('w9241=0=z7=0=12===J');
+ check('BUG-069 STO chờ chọn biến',!d.querySelector('#store-badge').hidden,text());
+ press('z');
+ check('BUG-069 lưu xong giữ nghiệm căn',d.querySelector('#store-badge').hidden&&!!d.querySelector('.radical'),text());
+ press('w1Qz=');
+ check('BUG-069 đọc A giữ đúng √3',d.querySelector('.math-result')?.textContent.trim()==='3'&&!!d.querySelector('.math-result .radical'),text());
+ press('C9=w9121=2=1=1=3=z2==JzRJx');
+ check('BUG-070 lưu y xong giữ màn y',text().replace(/[−–]/g,'-').includes('y=-3'),text());
+ press('w1M=');check('BUG-070 STO không đổi Ans',d.querySelector('.math-result')?.textContent.trim()==='9',text());
+ press('CQz=');check('BUG-070 đọc A=7',d.querySelector('.math-result')?.textContent.trim()==='7',text());
+ press('CQx=');check('BUG-070 đọc B=-3',d.querySelector('.math-result')?.textContent.trim()==='-3',text());
+ // [ĐÃ XÁC NHẬN 2026-11-06] BUG-072/073: hệ số đầy đủ và cuộn tập nghiệm.
+ press('wz431');await tick();
+ const draft=d.querySelector('.screen-line-draft'),screen=d.querySelector('#screen');
+ const draftRect=draft.getBoundingClientRect(),lcdRect=screen.getBoundingClientRect();
+ check('BUG-072 dòng nhập hệ số không bị cắt',draftRect.height>=parseFloat(w.getComputedStyle(draft).fontSize)*.9&&draftRect.bottom<=lcdRect.bottom&&draftRect.top>=d.querySelector('.coefficient-top').getBoundingClientRect().bottom-.5,JSON.stringify(draftRect));
+ press('=0=z7=0=12==');await tick();
+ const solutionText=text();press('$');await tick();
+ let scroll=d.querySelector('.inequality-scroll-viewport');
+ check('BUG-073 phím phải cuộn tập nghiệm',!!scroll&&Number(scroll.dataset.offset)>0,text());
+ frame.style.display='none';await tick();frame.style.display='';
+ // Chờ layout hiển thị thật trước khi gửi phím; setTimeout(0) có thể chạy trước ResizeObserver.
+ await new Promise(resolve=>w.requestAnimationFrame(()=>w.requestAnimationFrame(resolve)));
+ check('BUG-073 giữ vị trí sau ẩn/hiện khung máy',Number(d.querySelector('.inequality-scroll-viewport')?.dataset.offset)>0,text());
+ for(let i=0;i<25;i++)press('$');await tick();scroll=d.querySelector('.inequality-scroll-viewport');
+ check('BUG-073 tới cuối và giữ nguyên tập nghiệm',!!scroll&&scroll.querySelector('.inequality-scroll-content').getBoundingClientRect().right<=scroll.getBoundingClientRect().right+1&&Number(scroll.dataset.offset)<=Math.max(0,scroll.querySelector('.inequality-scroll-content').offsetWidth-scroll.clientWidth)+1&&text()===solutionText,JSON.stringify({text:text(),solutionText,offset:scroll?.dataset.offset,content:scroll?.querySelector('.inequality-scroll-content').getBoundingClientRect().toJSON(),viewport:scroll?.getBoundingClientRect().toJSON(),style:scroll?.querySelector('.inequality-scroll-content').getAttribute('style')}));
+ for(let i=0;i<25;i++)press('!');await tick();
+ check('BUG-073 quay lại đầu',Number(d.querySelector('.inequality-scroll-viewport')?.dataset.offset)===0,text());
+ press('w1Cy$$1$2');
+ check('BUG-074 hai ▶ tới cận trên; ▶ tiếp ra sau dx',text()==='∫1dx2',text());
+ for(const degree of ['2','3','4']) {
+  press('w92'+degree+'1');await tick();
+  const draft=d.querySelector('.screen-line-draft'),r=draft.getBoundingClientRect();
+  check('Hệ số Equation bậc '+degree+' nhìn đủ',r.height>=parseFloat(w.getComputedStyle(draft).fontSize)*.9&&r.bottom<=screen.getBoundingClientRect().bottom,r.height);
+ }
+ press('w1C[^5$p2016[^4$+2016[^3$p2016[d+2016[r2015==');
+ check('BUG-075 CALC đáp số toán học2015',d.querySelector('.math-result')?.textContent.trim()==='2015',text());
+ press('JzCQz+1=');check('BUG-075 STO và dùng tiếp A+1',d.querySelector('.math-result')?.textContent.trim()==='2016',text());
+ // BUG055–057: nghiệm bội chính xác, giữ X/Ans để tính tiếp.
+ for(const seed of ['0','1']) {
+  press('w1C3.4Qra0.7R3[p1$(14[p2)qr'+seed+'==');
+  check('BUG053/054 nghiệm5 từ '+seed,text().includes('x=5')&&!text().includes('Continue'),text());
+  press('CMp5=');check('BUG053/054 giữ Ans=5 từ '+seed,d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ }
+ for(const seed of ['0','2']) {
+  press('w1Cs6p[$ps3[+1$+[^3$+[p5[dp2Qr0qr'+seed+'==');
+  check('BUG058/059 nghiệm5 từ '+seed,text().includes('x=5')&&!text().includes('Continue'),text());
+  press('CMp5=');check('BUG058/059 Ans−5=0 từ '+seed,d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ }
+ for(const seed of ['z2','0','1']) {
+  press('w1C[^3$+3[d+3[+1Qr0qr'+seed+'==');
+  check('BUG055–057 nghiệm −1 từ '+seed,text().includes('x=-1')&&!text().includes('Continue'),text());
+  press('CM+1=');check('Nghiệm bội Ans+1=0 từ '+seed,d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ }
+ press('C(3[p1)^3$Qr0qr0==C[×3p1=');
+ check('Nghiệm bội 1/3 giữ đủ X',d.querySelector('.math-result')?.textContent.trim()==='0',text());
+ // Tiêu chí toán học06/11: không lưu nghiệm giả của họ log/căn.
+ press('w1C9=Cqz[dp6[+19)Qr2qz[p3)qr4==');
+ check('BUG-062 không nhận nghiệm giả',text().includes('CannotSolve'),text());
+ press('CM=');check('BUG-062 giữ Ans sau thất bại',d.querySelector('.math-result')?.textContent.trim()==='9',text());
+ press('C[=');check('BUG-062 giữ x đầu',d.querySelector('.math-result')?.textContent.trim()==='4',text());
+ press('Cqz[dp6[+19)Qr2qz[p2)qr4==');
+ check('BUG-062 vẫn tìm nghiệm thật 7.5',text().includes('7.5')&&!text().includes('CannotSolve'),text());
+ press('C([d+4[+6)s[d+4[+5$Qr[^3$+6[d+13[+10qr10000005.3==');
+ check('BUG-060 từ điểm trung gian không nhận nghiệm giả',text().includes('CannotSolve'),text());
+ press('C[=');check('BUG-060 giữ x đầu sau thất bại',d.querySelector('.math-result')?.textContent.trim()==='10000005.3',text());
+ press('Cs[d+2[+9$Qr[+3qr0==');
+ check('BUG-061 chuỗi x+3 vẫn tìm nghiệm 0',text().includes('x=0')&&!text().includes('CannotSolve'),text());
+ press('w1CT3');await tick();
+ const eng=d.querySelector('#optn-list'),items=[...eng.children],er=eng.getBoundingClientRect();
+ check('BUG-071 đủ 11 ký hiệu đúng thứ tự',items.map(x=>x.textContent).join(',')==='1:m,2:μ,3:n,4:p,5:f,6:k,7:M,8:G,9:T,A:P,B:E',eng.textContent);
+ check('BUG-071 bốn hàng trong LCD',items.length===11&&items[0].getBoundingClientRect().top===items[2].getBoundingClientRect().top&&items[10].getBoundingClientRect().bottom<=screen.getBoundingClientRect().bottom,er.height);
+ press('!');check('BUG-071 ◀ trở lại OPTN',!d.querySelector('#optn-overlay').hidden&&d.querySelector('#optn-list').textContent.includes('3:'),text());
+ press('C');
+ key('clear').click();pointer(key('1'),'pointerdown');pointer(key('2'),'pointermove');pointer(key('2'),'pointerup');key('2').dispatchEvent(new w.MouseEvent('click',{bubbles:true,cancelable:true,detail:1,...point(key('2'))}));check('Trượt 1 sang 2 không nhập nhầm',!/[12]/.test(text()),text());tap(key('3'));check('Sau trượt vẫn nhập đúng 3',text().includes('3'),text());
+ key('clear').click();pointer(key('1'),'pointerdown');pointer(key('1'),'pointercancel');pointer(key('1'),'pointerup');tap(key('2'));check('Hủy thao tác rồi chạm 2',text()==='2',text());
+ for(let i=0;i<12;i++){
+  d.querySelector('#app-menu-button').click();const modal=d.querySelector('dialog[open]');d.querySelector('#settings-button').click();check('Cùng một modal khi vào cài đặt '+i,d.querySelector('dialog[open]')===modal,'modal khác');
+  d.querySelector('[data-case-color="'+['pink','blue','black'][i%3]+'"]').click();d.querySelector('#settings-dialog [data-close-dialog]').click();await tick();
+  for(const k of ['clear','6','power','6','equals'])tap(key(k));check('Sau đổi màu '+i+': 6^6=46656',d.querySelector('.math-result')?.textContent.trim()==='46656',text());
+  const misses=[...d.querySelectorAll('.key')].filter(k=>{const p=point(k);return d.elementFromPoint(p.clientX,p.clientY)?.closest('.key')!==k});check('Vùng nhận phím sau đổi màu '+i,misses.length===0,misses.length);
+ }
+ d.querySelector('#app-menu-button').click();d.querySelector('#guide-button').click();d.querySelector('#keyboard-help-button').click();d.querySelector('#keyboard-dialog [data-close-dialog]').click();await tick();check('Đóng chuỗi hướng dẫn bỏ hết modal',!d.querySelector('dialog[open]'),'còn modal');
+ d.querySelector('#app-menu-button').click();d.querySelector('#install-button').click();for(const platform of ['ios','android','desktop']){d.querySelector('[data-install-platform="'+platform+'"]').click();check('Hướng dẫn '+platform+' đủ 3 bước',d.querySelectorAll('#install-'+platform+' .visual-steps > li').length===3,'thiếu');}d.querySelector('#install-dialog [data-close-dialog]').click();await tick();
+ const buttons=[...d.querySelectorAll('.key')];check('Đủ 50 vùng phím',buttons.length===50,buttons.length);
+ const clipped=buttons.filter(k=>{const r=k.getBoundingClientRect();return r.left<-.5||r.top<-.5||r.right>w.innerWidth+.5||r.bottom>w.innerHeight+.5;});
+ check('Không phím nào bị cắt ở biên viewport',clipped.length===0,clipped.length);
+ check('Không tràn ngang',d.documentElement.scrollWidth<=d.documentElement.clientWidth,d.documentElement.scrollWidth);
+} catch(e){failures++;out.textContent+='ERROR '+e.stack+'\n';}
+out.textContent+='\nTỔNG: '+passed+' PASS / '+failures+' FAIL';document.querySelector('#summary').textContent='TỔNG: '+passed+' PASS / '+failures+' FAIL';run.disabled=false;};
+</script></html>

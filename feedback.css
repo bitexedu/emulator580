@@ -1,0 +1,207 @@
+.feedback-panel { background: #ffffffd9; border: 1px solid #dedfda; padding: 26px; border-radius: 22px; box-shadow: 0 8px 30px #24384208; }
+.feedback-panel h2 { margin: 0 0 8px; font-size: 22px; letter-spacing: -.03em; color: #243842; }
+.feedback-intro, .beta-note { font-size: 14px; line-height: 1.6; color: #637078; }
+.feedback-intro { margin: 0 0 22px; }
+.feedback-field { display: block; margin: 0 0 16px; }
+.feedback-label { display: block; font-size: 14px; font-weight: 650; margin-bottom: 7px; color: #334952; }
+.feedback-optional { font-weight: 400; color: #7b858a; font-size: 12px; }
+.feedback-field input, .feedback-field textarea { width: 100%; padding: 11px 12px; border: 1px solid #d0d8d7; border-radius: 9px; background: #fff; color: #263b45; font: inherit; font-size: 14px; line-height: 1.5; }
+.feedback-field textarea { resize: vertical; min-height: 76px; }
+.feedback-field input:focus, .feedback-field textarea:focus { outline: 2px solid #39819855; border-color: #398198; }
+.feedback-field input::placeholder, .feedback-field textarea::placeholder { color: #929b9f; }
+.feedback-upload { padding: 15px; border: 1px dashed #b8c7c7; border-radius: 12px; background: #f6f9f7; font-size: 13px; color: #65747a; line-height: 1.6; }
+.feedback-upload[data-dragging="true"] { border-color: #287a91; background: #eaf4f4; }
+.feedback-upload input { display: block; width: 100%; margin-bottom: 7px; font: inherit; font-size: 13px; color: #334952; }
+.feedback-upload input::file-selector-button { border: 1px solid #c5d1d1; border-radius: 7px; padding: 8px 10px; margin-right: 8px; background: #fff; color: #334952; cursor: pointer; font: inherit; }
+.feedback-preview { margin: 14px 0 0; }
+.feedback-preview img { display: block; max-width: 100%; max-height: 210px; margin: auto; border: 1px solid #dae0df; border-radius: 8px; object-fit: contain; }
+.feedback-preview figcaption { overflow-wrap: anywhere; padding-top: 8px; font-size: 12px; }
+.feedback-remove { margin-top: 8px; border: 0; padding: 0; color: #ac3047; background: none; text-decoration: underline; cursor: pointer; font: inherit; }
+.feedback-submit { border: 0; border-radius: 10px; width: 100%; padding: 13px 16px; margin-top: 18px; color: #fff; background: #234958; font: inherit; font-size: 15px; font-weight: 650; cursor: pointer; }
+.feedback-submit:hover { background: #1b3c4b; }
+.feedback-submit:disabled { cursor: wait; opacity: .65; }
+.feedback-submit:focus-visible, .feedback-remove:focus-visible { outline: 2px solid #287a91; outline-offset: 3px; }
+.feedback-status { margin: 12px 0 0; font-size: 14px; line-height: 1.5; color: #346757; }
+.feedback-status[data-error="true"] { color: #ac3047; }
+.feedback-status:empty { display: none; }
+.feedback-privacy { margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: #7b858a; }
+.feedback-success { max-width:540px; margin:60px auto; }
+.feedback-success a { display:inline-block; margin-top:14px; color:#234958; font-weight:650; }
+[hidden] { display:none!important; }
+.app-dialog { width:min(94vw,480px); max-height:calc(100vh - 24px); max-height:calc(100dvh - 24px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px)); padding:24px; border:1px solid #cdd5ce; border-radius:18px; background:#fafcf9; color:#283c31; box-shadow:0 18px 70px #15271a45; overflow:auto; overscroll-behavior:contain; }
+.app-dialog::backdrop { background:#17261dd0; }
+.dialog-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+.dialog-heading h2 { margin:0; font-size:21px; }
+.dialog-heading button, .dialog-close { flex:none; width:40px; height:40px; font-size:28px; line-height:1; border:0; background:#e5ebe4; color:#324637; border-radius:50%; cursor:pointer; }
+.dialog-close { float:right; margin:0 0 4px 8px; }
+.utility-button { display:block; width:100%; text-align:left; margin:10px 0; padding:14px; font:inherit; border:1px solid #d3dbd2; border-radius:10px; background:#fff; color:#263f2f; cursor:pointer; }
+.utility-button:hover { background:#edf3eb; }
+.app-help, #install-instructions { font-size:14px; line-height:1.65; }
+.app-dialog small { color:#657569; }
+#offline-status { padding:12px; border-radius:10px; background:#e5eee1; font-size:14px; line-height:1.5; }
+#offline-status[data-error="true"] { background:#fff0d9; }
+.feedback-dialog { width:min(94vw,600px); }
+.feedback-dialog .feedback-panel { border:0; box-shadow:none; padding:0; background:transparent; }
+.feedback-field input, .feedback-field textarea { font-size:16px; }
+@media(max-width:420px) { .app-dialog { padding:18px; } .app-title span { display:none; } }
+
+.keyboard-help { margin:0; font-size:14px; line-height:1.5; }
+.keyboard-help dt { font-weight:700; margin-top:14px; }
+.keyboard-help dd { margin:3px 0 0; color:#526459; }
+
+.install-platforms { display:flex; gap:6px; margin:18px 0; }
+.install-platforms button { flex:1; padding:10px 4px; border:1px solid #ccd8cf; border-radius:8px; background:white; color:#2b4434; font:600 13px system-ui,sans-serif; cursor:pointer; }
+.install-platforms button[aria-pressed="true"] { background:#294d38; color:white; border-color:#294d38; }
+.install-steps { padding:0; margin:0; list-style:none; counter-reset:install-step; }
+.install-steps li { position:relative; padding:0 0 18px 36px; counter-increment:install-step; font-size:14px; line-height:1.55; }
+.install-steps li::before { content:counter(install-step); position:absolute; top:0; left:0; width:25px; height:25px; display:grid; place-items:center; border-radius:50%; background:#e2ece3; color:#295037; font-weight:700; }
+.install-steps li span { display:block; color:#526358; margin-top:4px; }
+.share-icon { width:20px; height:20px; vertical-align:-4px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.install-offline-check { margin:12px 0; padding:14px; border-radius:12px; background:#edf3e9; font-size:14px; line-height:1.55; }
+.install-offline-check p { margin:8px 0 0; }
+#install-offline-status { font-weight:650; color:#285437; }
+#install-offline-status[data-error="true"] { color:#7a4e12; }
+.install-notice { font-size:14px; background:#e2ece3; border-radius:8px; padding:12px; }
+.utility-button.install-primary { background:#294d38; color:white; text-align:center; font-weight:650; }
+#install-prompt-status:empty { display:none; }
+.install-link { font-size:13px; line-height:1.5; margin-top:20px; }
+.install-link summary { cursor:pointer; font-weight:650; }
+.install-link label { display:block; margin:12px 0 5px; }
+#install-url { display:block; width:100%; padding:10px; font-size:16px; border:1px solid #cbd6cc; border-radius:7px; }
+#install-dialog .dialog-heading { position:sticky; top:-24px; padding:10px 0; background:#fafcf9; z-index:1; }
+@media(max-width:420px) { #install-dialog .dialog-heading { top:-18px; } }
+
+/* Tiện ích ứng dụng: lớp giao diện riêng, không dùng font LCD. */
+.app-dialog { background:#fff; color:#293441; border-color:#d2dce5; box-shadow:0 20px 72px #17233840; font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif; }
+.app-dialog::backdrop { background:#1a293b70; }
+.dialog-heading h2 { font-size:22px; letter-spacing:-.025em; }
+.dialog-heading button { background:#f3f6f9; color:#63778c; border:1px solid #d4dce5; }
+.app-dialog .app-help, .app-dialog small { color:#647487; }
+#app-menu { width:min(92vw,320px); padding:18px; }
+#app-menu .dialog-heading { margin-bottom:0; }
+.menu-subtitle { color:#718095; font-size:12px; margin:2px 0 15px; }
+.utility-list { display:grid; gap:3px; }
+.utility-list .utility-button { display:flex; align-items:center; gap:12px; border:0; border-radius:9px; margin:0; padding:10px 8px; font-weight:550; color:#293441; }
+.utility-list .utility-button > span:first-child { display:grid; place-items:center; flex:none; width:28px; height:28px; border-radius:8px; background:#f1f6fb; color:#247db4; font-size:21px; line-height:1; }
+.utility-list .utility-button:hover { background:#f1f6fb; }
+.menu-offline { margin:16px 0 10px; padding-top:14px; border-top:1px solid #dce3eb; color:#36734e; font-size:12px; }
+#offline-status[data-error="true"] { color:#886017; }
+#update-status:empty, #settings-status:empty, #install-prompt-status:empty { display:none; }
+#settings-dialog { width:min(94vw,640px); }
+#settings-dialog .dialog-heading { margin:0 0 18px; }
+#settings-dialog .dialog-heading .app-help { margin:3px 0 0; }
+.settings-section { margin:0; padding:22px 0; border:0; border-top:1px solid #dce3eb; }
+.settings-section legend { float:left; width:100%; padding:0; margin:0 0 12px; font-weight:650; }
+.theme-options, .highlight-options { clear:both; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; }
+.theme-options button, .highlight-options button { display:flex; align-items:center; justify-content:center; gap:9px; padding:12px 8px; border:1px solid #c8d4df; border-radius:11px; background:#fff; color:#293441; font:600 14px/1.4 inherit; cursor:pointer; }
+.theme-options button[aria-pressed="true"], .highlight-options button[aria-pressed="true"] { border-color:#2284bc; box-shadow:0 0 0 1px #2284bc; background:#eef6fc; }
+.color-swatch { width:18px; height:18px; border-radius:50%; box-shadow:0 0 0 1px #0002,0 0 0 3px #fff inset; }
+.color-swatch.black { background:#283036; }.color-swatch.blue { background:#90aed9; }.color-swatch.pink { background:#e2a9bc; }
+.highlight-options { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.highlight-options button { flex-direction:column; gap:7px; }
+.highlight-options small { font-size:12px; font-weight:400; }
+.key-demo { display:grid; place-items:center; width:45px; height:32px; margin:10px 0; border:1px solid #89969d; border-radius:7px; background:linear-gradient(#fff,#d6dde1); color:#151c20; box-shadow:0 2px 2px #172b3133; font:600 21px/1 system-ui; }
+.key-demo.contrast { background:#122741; color:white; border:2px solid #ffe76b; box-shadow:0 0 0 2px #122741; }
+.touch-setting { display:flex; align-items:center; justify-content:space-between; gap:20px; cursor:pointer; }
+.touch-setting small { display:block; margin-top:5px; font-size:12px; }
+.touch-setting input { appearance:none; flex:none; width:44px; height:26px; background:#c6cdd4; border-radius:16px; position:relative; cursor:pointer; }
+.touch-setting input::after { content:""; position:absolute; top:3px; left:3px; width:20px; height:20px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #17233840; }
+.touch-setting input:checked { background:#2183ba; }.touch-setting input:checked::after { left:21px; }
+.app-dialog button:focus-visible, .app-dialog input:focus-visible { outline:3px solid #69b6e4; outline-offset:3px; }
+#zoom-dialog { width:min(96vw,1100px); }
+#zoom-viewport { overflow:auto; max-height:65dvh; border-radius:12px; border:5px solid #18231f; background:var(--screen-bg); }
+#zoom-device.calculator { position:relative; container-type:normal; aspect-ratio:auto; margin:0; padding:0; box-shadow:none; border:0; background:transparent; }
+#zoom-content { transform-origin:top left; }
+#zoom-content .screen-wrap { max-width:none; }
+.zoom-control { display:flex; align-items:center; gap:14px; margin-top:18px; }.zoom-control input { min-width:60px; flex:1; accent-color:#2383b9; }.zoom-control output { width:4ch; }
+#install-dialog .dialog-heading { background:white; }
+.utility-button.install-primary { background:#226f9e; border-color:#226f9e; }
+@media(max-width:420px) { .app-dialog { padding:18px; }.settings-section { padding:18px 0; }.highlight-options small { font-size:11px; }.theme-options { gap:7px; } }
+
+#zoom-device.calculator::before { display:none; }
+
+#app-menu { margin:0; }
+#app-menu::backdrop { background:#17233824; }
+
+/* Một dialog cố định giữ focus, backdrop và hit testing cùng một vòng đời. */
+#utility-dialog { position:fixed; inset:0; width:fit-content; height:fit-content; max-width:100%; max-height:100%; margin:auto; padding:0; border:0; background:transparent; overflow:visible; }
+#utility-dialog::backdrop { background:#1a293b70; }
+#utility-dialog[data-panel="app-menu"] { right:auto; bottom:auto; margin:0; }
+#utility-dialog[data-panel="app-menu"]::backdrop { background:#17233824; }
+#utility-dialog > .app-dialog { margin:0; }
+.app-dialog button, .app-toolbar button, .touch-setting { touch-action:manipulation; -webkit-tap-highlight-color:transparent; }
+.app-toolbar button { min-width:44px; min-height:44px; }
+@media(hover:none) { .calculator .key:hover:not(.key-locked) { background:transparent; } }
+.calculator .key.touch-pressed:not(.key-locked) { background:#ffffff40; box-shadow:0 0 0 1px #ffffff70 inset; }
+
+/* Thiết kế riêng: giấy sáng, màu mực xanh trầm, xem trước vỏ và hướng dẫn bằng hình. */
+.app-dialog { background:#fcfbf7; color:#243a3c; border-color:#cbd5ce; border-radius:22px; font-size:15px; line-height:1.55; }
+.app-dialog .dialog-heading { position:sticky; top:-24px; z-index:2; margin:-1px 0 18px; padding:12px 0 16px; background:#fcfbf7; border-bottom:1px solid #dce2d9; }
+.app-dialog .dialog-heading h2 { font-size:24px; letter-spacing:-.04em; line-height:1.2; }
+.dialog-eyebrow { margin:0 0 6px; color:#63796b; font-size:10px; font-weight:750; letter-spacing:.13em; }
+.dialog-heading button { width:44px; height:44px; border-radius:12px; border-color:#d2ddd3; background:#f0f3ec; color:#284e4e; }
+.app-dialog h3 { margin:0; font-size:16px; line-height:1.4; }
+.app-dialog button, .app-dialog summary { -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+.app-dialog button:focus-visible, .app-dialog input:focus-visible, .app-dialog summary:focus-visible { outline:3px solid #d2a743; outline-offset:3px; }
+.utility-list .utility-button { background:transparent; color:#234748; }
+.utility-list .utility-button > span:first-child { background:#e6eee5; color:#2d6261; }
+.utility-list .utility-button:hover { background:#edf1e8; }
+.utility-button.install-primary { background:#245b59; color:#fff; border:0; border-radius:12px; padding:14px; }
+.utility-button.install-primary:hover { background:#174b49; }
+#settings-dialog, #install-dialog { width:min(94vw,570px); }
+.case-studio { display:grid; grid-template-columns:minmax(100px,.8fr) minmax(160px,1fr); align-items:center; gap:24px; border-radius:16px; background:linear-gradient(140deg,#edf1e7,#e2e9e2); padding:20px; }
+.case-preview { height:210px; text-align:center; }
+.case-preview img { display:block; width:auto; height:100%; max-width:100%; object-fit:contain; margin:auto; }
+.case-picker > p { font-size:12px; color:#66796e; margin:5px 0 12px; }
+.case-colors { display:grid; gap:6px; }
+.case-colors button { display:flex; align-items:center; gap:9px; min-height:38px; padding:7px 10px; border:1px solid transparent; border-radius:10px; background:transparent; color:#314b49; font:inherit; font-size:14px; font-weight:600; line-height:1.3; cursor:pointer; }
+.case-colors button[aria-pressed="true"] { background:#fcfbf7; border-color:#8aaba1; }
+.color-check { margin-left:auto; visibility:hidden; }.case-colors button[aria-pressed="true"] .color-check { visibility:visible; }
+.interaction-options { margin:18px 0 0; }
+.setting-row { display:flex; align-items:center; justify-content:space-between; gap:20px; padding:18px 0; border-bottom:1px solid #dce2d9; cursor:pointer; touch-action:manipulation; }
+.setting-row strong { display:block; font-size:15px; }.setting-row small { display:block; margin-top:5px; color:#64766a; font-size:13px; line-height:1.5; }
+.setting-row input { appearance:none; -webkit-appearance:none; position:relative; flex:none; width:46px; height:28px; margin:0; border:1px solid #c0cdc5; border-radius:15px; background:#dce3dc; cursor:pointer; touch-action:manipulation; }
+.setting-row input::after { content:""; position:absolute; width:20px; height:20px; top:3px; left:3px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #142f3528; }
+.setting-row input:checked { background:#245b59; border-color:#245b59; }.setting-row input:checked::after { left:21px; }
+.touch-help, .install-alternative { margin-top:16px; color:#526b61; font-size:13px; }
+.touch-help summary, .install-alternative summary { padding:8px 0; font-weight:650; cursor:pointer; }
+.save-status { min-height:1.5em; margin:14px 0 0; color:#507569; font-size:12px; text-align:center; }
+.guide-lcd { display:grid; gap:10px; padding:18px 22px; border:1px solid #b5c9b2; border-radius:12px; background:#dae6d3; color:#172d24; font:24px/1.25 "Simulator LCD Numerals",monospace; }
+.guide-lcd strong { text-align:right; font-weight:400; }
+.quick-guide article { display:flex; gap:16px; padding:20px 0; border-bottom:1px solid #dce2d9; }
+.guide-number { color:#859b80; font-size:22px; font-weight:500; line-height:1.3; }.quick-guide p { margin:7px 0 0; color:#526a61; font-size:14px; }
+.quick-guide kbd { display:inline-block; padding:0 5px; border:1px solid #bccac1; border-bottom-width:2px; border-radius:4px; color:#254441; background:#f0f3eb; font:600 11px/1.7 system-ui,sans-serif; white-space:nowrap; }
+.quick-guide .shift-chip { color:#745817; background:#fff1b9; }.quick-guide .alpha-chip { color:#8d3b4b; background:#ffe4e6; }
+.guide-actions { margin-top:18px; }.guide-actions button { display:flex; justify-content:space-between; align-items:center; gap:14px; background:#edf1e8; color:#2f5550; border:0; border-radius:12px; font-size:14px; }
+.guide-actions .install-primary { background:#245b59; color:white; }
+.guide-note { font-size:12px!important; line-height:1.6; margin:18px 0 0; }
+#install-dialog .dialog-heading { background:#fcfbf7; }
+.install-intro { color:#586f64; margin:0 0 18px; font-size:15px; }
+.install-platforms { padding:4px; gap:3px; background:#e9eee5; border-radius:12px; margin:0 0 12px; }
+.install-platforms button { padding:11px 3px; border:0; border-radius:9px; background:transparent; color:#50685d; font-size:13px; }
+.install-platforms button[aria-pressed="true"] { color:#224e48; background:#fffefa; box-shadow:0 1px 4px #233f3820; }
+.visual-steps { list-style:none; padding:0; margin:0; }
+.visual-steps > li { display:grid; grid-template-columns:minmax(0,1fr) 160px; gap:20px; align-items:center; padding:21px 0; border-bottom:1px solid #dce2d9; }
+.step-index { display:block; color:#7d987f; font:500 22px/1.1 system-ui; margin-bottom:8px; }
+.install-step-copy p { margin:7px 0 0; color:#5b6f65; font-size:13px; line-height:1.6; }
+.step-art { display:grid; justify-items:center; gap:8px; padding:14px 8px; min-height:100px; border-radius:14px; background:#eaf0e6; color:#2b5b58; font-size:11px; text-align:center; }
+.step-art svg { fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round; width:34px; height:34px; }
+.browser-symbol { display:grid; justify-items:center; gap:8px; }.browser-symbol svg { width:46px; height:46px; background:#fafcf6; border-radius:50%; }
+.compass-north { fill:#c7685f; stroke:#c7685f; }
+.share-demo { display:flex; align-items:center; justify-content:center; gap:8px; font-size:12px; font-weight:600; }
+.share-demo svg { width:25px; height:25px; }
+.mini-menu-row { width:100%; text-align:left; padding:8px; background:#fcfdf9; border-radius:6px; font-size:10px; }.mini-menu-row b { padding-right:5px; font-size:15px; }
+.mini-menu-row.selected { border:1px solid #8bac9d; color:#214f47; }
+.home-demo { display:grid; justify-items:center; gap:7px; }.home-demo img { width:48px; height:48px; border-radius:12px; box-shadow:0 3px 6px #305b5225; }
+.mini-browser { display:flex; align-items:center; justify-content:space-between; gap:10px; width:100%; border:1px solid #bfd2c5; background:#fcfdf9; border-radius:9px; padding:9px; }.mini-browser b { border-radius:5px; padding:1px 6px; border:1px solid #6f9b88; font-size:20px; }.desktop-browser { border-top-width:9px; }
+.art-caption { font-size:10px; color:#687f70; }.mini-install { display:grid; gap:12px; padding:12px; width:100%; border:1px solid #bfd2c5; border-radius:9px; background:#fcfdf9; }.mini-install strong { padding:7px; border-radius:5px; background:#245b59; color:#fff; }
+.illustration-note { margin:12px 0; color:#7a887c; font-size:11px; line-height:1.5; }
+.install-offline-check { display:flex; gap:12px; padding:16px; margin:18px 0; border:1px solid #c8d8b9; border-radius:14px; background:#edf2df; color:#354e38; font-size:13px; }
+.offline-symbol { flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:50%; background:#5b7d4d; color:#fff; }
+.install-offline-check p { font-size:13px; }.install-link { border-top:1px solid #dce2d9; padding-top:14px; }.install-link summary { color:#345e55; }
+@media(max-width:420px) {
+ .app-dialog { padding:18px; }.app-dialog .dialog-heading { top:-18px; }.app-dialog .dialog-heading h2 { font-size:22px; }
+ .case-studio { padding:16px; gap:16px; grid-template-columns:100px minmax(0,1fr); }.case-preview { height:200px; }
+ .visual-steps > li { grid-template-columns:minmax(0,1fr) 112px; gap:12px; }.step-art { padding:12px 7px; }.mini-menu-row { padding:7px 5px; }
+}
+@media(max-width:350px) { .case-studio { grid-template-columns:85px minmax(0,1fr); padding:12px; gap:10px; }.case-preview { height:180px; }.visual-steps > li { grid-template-columns:1fr; }.step-art { min-height:80px; }.dialog-eyebrow { font-size:9px; } }

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Giả lập fx-580VN X — Bản thử nghiệm</title>
+  <meta name="theme-color" content="#e9ece9" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="580VN X" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="assets/icon-180.png" />
+  <link rel="icon" type="image/png" href="assets/icon-192.png" />
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="device.css" />
+  <link rel="stylesheet" href="feedback.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <div class="device-stage" id="device-stage">
+  <div class="calculator" role="region" aria-label="Máy tính fx-580VN X">
+    <img class="device-face" src="assets/device-face.svg" alt="" draggable="false" />
+    <header class="app-toolbar">
+      <button type="button" id="install-shortcut" aria-haspopup="dialog">Cài ngay</button>
+      <button type="button" id="app-menu-button" aria-label="Mở tiện ích ứng dụng" aria-haspopup="dialog">⋯</button>
+    </header>
+
+
+    <div class="screen-wrap" id="screen-wrap">
+      <!-- Dải chỉ báo: ĐÃ XÁC NHẬN 2026-08-17 trên bản giả lập chính hãng —
+           máy thật chỉ hiện biểu tượng Math I/O và MỘT chữ trong ô cho đơn vị
+           góc (D/R/G), cả hai nằm sát nhau ở góc trên bên TRÁI, và KHÔNG hiện
+           tên mode ở đâu cả (kiểm ở Calculate, Verify, Ratio, Equation).
+           Góc phải là chỗ của chỉ báo cuộn ▲▼ — CHƯA LÀM. Đã đối chiếu
+           2026-08-20: hai mũi tên đó là bộ mặt của LỊCH SỬ PHÉP TÍNH (▲ còn
+           mục cũ ở trên, ▼ còn mục mới ở dưới), không phải chỉ báo trang trí,
+           nên phải làm cùng lịch sử. Đặc tả đầy đủ trong HANDOFF. -->
+      <div class="screen-badges">
+        <span class="badge-left">
+          <!-- Thứ tự trái→phải ĐÃ XÁC NHẬN 2026-08-20: M đứng TRƯỚC biểu tượng
+               Math I/O và ô đơn vị góc. M là chữ trần, không có ô viền. -->
+          <!-- Chỉ báo phím theo CASIO 2026-10-20; tách khỏi vùng phép toán. -->
+          <span class="modifier-badge" id="shift-badge"></span>
+          <span class="modifier-badge" id="alpha-badge"></span>
+          <span class="memory-badge" id="memory-badge"></span>
+          <span class="store-badge" id="store-badge" role="img" aria-label="STO" hidden>
+            <svg viewBox="0 0 12 9" aria-hidden="true"><path d="M5 1h6v7H5M1 4.5h7M5 2l3 2.5L5 7" fill="none" stroke="currentColor" stroke-width="1"/></svg>
+          </span>
+          <span class="io-badge" id="io-badge">√▸</span>
+          <span class="angle-unit-badge" id="angle-unit-badge"></span>
+          <!-- Chữ FIX/SCI của mục Number Format, đứng SAU ô đơn vị góc —
+               ĐÃ XÁC NHẬN 2026-08-21. Norm không hiện gì. -->
+          <span class="number-format-badge" id="number-format-badge"></span>
+          <!-- Chỉ báo (E) của Engineer Symbol — ĐÃ XÁC NHẬN 2026-08-23. -->
+          <span class="engineer-badge" id="engineer-badge"></span>
+          <!-- Complex hiện i hoặc ∠ theo SETUP — ĐÃ XÁC NHẬN 2026-09-11. -->
+          <span class="complex-badge" id="complex-badge"></span>
+        </span>
+        <span class="scroll-badge" id="scroll-badge"></span>
+      </div>
+      <div class="screen-area">
+        <div class="screen" id="screen"></div>
+        <!-- Nhãn góc phải của màn hình tính mode Statistics — ĐÃ XÁC NHẬN
+             2026-08-25 ("Statistics" / "1-Variable"). -->
+        <div class="mode-corner" id="mode-corner"></div>
+      </div>
+      <div class="overlay" id="mode-overlay" hidden>
+        <div class="overlay-title">Select Mode</div>
+        <ul class="overlay-list" id="mode-list" aria-label="Calculation modes"></ul>
+        <div class="mode-selection" id="mode-selection" aria-live="polite"></div>
+      </div>
+      <div class="overlay" id="optn-overlay" hidden>
+        <div class="overlay-title">OPTN — toán tử quan hệ</div>
+        <ul class="overlay-list" id="optn-list"></ul>
+      </div>
+      <div class="overlay" id="recall-overlay" hidden>
+        <div class="overlay-title">RECALL — giá trị biến hiện tại</div>
+        <ul class="overlay-list" id="recall-list"></ul>
+      </div>
+      <div class="overlay" id="setup-overlay" hidden>
+        <div class="overlay-title">SETUP</div>
+        <ul class="overlay-list" id="setup-list"></ul>
+      </div>
+    </div>
+
+    <!-- Bàn phím dựng từ keypad.js, KHÔNG viết tay ở đây nữa. Lý do và bảng
+         gán phím nằm trong file đó; trang test cũng đọc chính bảng ấy nên
+         mọi sai lệch gán phím bị bắt ngay thay vì nằm im. -->
+    <div class="keypad" id="keypad"></div>
+
+  </div>
+
+
+    </div>
+  </main>
+
+  <dialog id="utility-dialog" aria-labelledby="app-menu-heading">
+  <section class="app-dialog" id="app-menu" hidden aria-labelledby="app-menu-heading">
+    <div class="dialog-heading"><h2 id="app-menu-heading">Tiện ích</h2><button type="button" data-close-dialog aria-label="Đóng tiện ích">×</button></div>
+    <p class="menu-subtitle">fx-580VN X · Giả lập thử nghiệm</p>
+    <nav class="utility-list" aria-label="Tiện ích ứng dụng">
+      <button class="utility-button" id="guide-button" type="button"><span aria-hidden="true">?</span>Hướng dẫn</button>
+      <button class="utility-button" id="zoom-button" type="button"><span aria-hidden="true">⌕</span>Phóng to màn hình LCD</button>
+      <button class="utility-button" id="fullscreen-button" type="button"><span aria-hidden="true">⛶</span><span id="fullscreen-label">Toàn màn hình</span></button>
+      <button class="utility-button" id="settings-button" type="button"><span aria-hidden="true">☷</span>Cài đặt</button>
+      <button class="utility-button" id="install-button" type="button"><span aria-hidden="true">↓</span><span id="install-menu-label">Cài ứng dụng</span></button>
+      <button class="utility-button" id="check-update-button" type="button"><span aria-hidden="true">↻</span>Kiểm tra cập nhật</button>
+      <button class="utility-button" id="feedback-open" type="button"><span aria-hidden="true">✎</span>Gửi góp ý và ảnh</button>
+    </nav>
+    <p id="fullscreen-status" class="app-help" role="status" hidden></p>
+    <p id="offline-status" class="menu-offline" role="status" aria-live="polite">Đang chuẩn bị dùng ngoại tuyến…</p>
+    <p id="update-status" class="app-help" role="status"></p>
+    <button class="utility-button install-primary" id="update-button" type="button" hidden>Cập nhật phiên bản mới</button>
+    <small id="release-version">Bản mã nguồn</small>
+  </section>
+  <section class="app-dialog" id="settings-dialog" hidden aria-labelledby="settings-heading">
+    <div class="dialog-heading"><div><p class="dialog-eyebrow">KHÔNG GIAN CỦA BẠN</p><h2 id="settings-heading">Tùy chỉnh máy</h2></div><button type="button" data-close-dialog aria-label="Đóng cài đặt">×</button></div>
+    <div class="case-studio">
+      <div class="case-preview"><img id="case-preview" src="assets/device-face.svg" alt="Xem trước màu vỏ máy" width="375" height="760" /></div>
+      <div class="case-picker"><h3>Màu vỏ</h3><p>Cùng một chiếc máy.<br>Màu sắc bạn yêu thích.</p>
+        <div class="case-colors" role="group" aria-label="Chọn màu vỏ">
+          <button type="button" data-case-color="black" aria-pressed="true"><span class="color-swatch black"></span>Đen<span class="color-check" aria-hidden="true">✓</span></button>
+          <button type="button" data-case-color="blue" aria-pressed="false"><span class="color-swatch blue"></span>Xanh<span class="color-check" aria-hidden="true">✓</span></button>
+          <button type="button" data-case-color="pink" aria-pressed="false"><span class="color-swatch pink"></span>Hồng<span class="color-check" aria-hidden="true">✓</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="interaction-options">
+      <label class="setting-row" for="key-highlight"><span><strong>Làm nổi phím vừa bấm</strong><small>Giữ dấu vàng để dễ theo dõi khi trình chiếu.</small></span><input type="checkbox" role="switch" id="key-highlight" /></label>
+      <label class="setting-row" for="lcd-touch"><span><strong>Chạm để sửa trên LCD</strong><small>Đặt con trỏ và chọn mục menu ngay trên màn hình máy tính.</small></span><input type="checkbox" role="switch" id="lcd-touch" /></label>
+    </div>
+    <details class="touch-help"><summary>Các thao tác trên LCD</summary><p><b>Chạm</b> để đặt con trỏ. <b>Kéo một ngón</b> để di chuyển con trỏ; trong menu, vuốt lên/xuống để chuyển trang. <b>Hai ngón</b> để cuộn biểu thức dài hoặc phóng to bằng trình duyệt.</p><p>Bàn phím máy tính luôn dùng được, kể cả khi tắt cảm ứng LCD.</p></details>
+    <p id="settings-status" class="save-status" role="status">Cài đặt được giữ trên thiết bị này.</p>
+  </section>
+  <section class="app-dialog" id="guide-dialog" hidden aria-labelledby="guide-heading">
+    <div class="dialog-heading"><div><p class="dialog-eyebrow">LÀM QUEN TRONG MỘT PHÚT</p><h2 id="guide-heading">Bắt đầu sử dụng</h2></div><button type="button" data-close-dialog aria-label="Đóng hướng dẫn">×</button></div>
+    <div class="guide-lcd" aria-label="Ví dụ: 12 cộng 3 bằng 15"><span>12+3</span><strong>15</strong></div>
+    <div class="quick-guide">
+      <article><span class="guide-number">01</span><div><h3>Chọn chế độ</h3><p>Bấm <kbd>MENU</kbd>, rồi chọn số của chế độ cần dùng. Dùng các phím mũi tên để di chuyển.</p></div></article>
+      <article><span class="guide-number">02</span><div><h3>Nhập, sửa và tính</h3><p>Bấm <kbd>=</kbd> để tính. <kbd>DEL</kbd> xóa một ký tự; <kbd>AC</kbd> xóa phép tính hoặc trở về màn nhập.</p></div></article>
+      <article><span class="guide-number">03</span><div><h3>Chức năng phía trên phím</h3><p><kbd class="shift-chip">SHIFT</kbd> gọi chức năng màu vàng; <kbd class="alpha-chip">ALPHA</kbd> gọi chức năng màu đỏ.</p></div></article>
+    </div>
+    <div class="guide-actions"><button class="utility-button" id="keyboard-help-button" type="button">⌨ Phím tắt trên máy tính <span aria-hidden="true">→</span></button><button class="utility-button install-primary" id="guide-install-button" type="button">Cài để dùng khi mất mạng <span aria-hidden="true">→</span></button></div>
+    <p class="app-help guide-note">Hằng số khoa học: CODATA 2022 (NIST). Một số giá trị cập nhật khác fx-580VN X; thứ tự phím và menu được giữ nguyên.</p>
+    <p class="app-help guide-note">Đây là bản thử nghiệm. Nếu gặp lỗi, mở ⋯ → Gửi góp ý và ảnh, kèm chuỗi phím đã bấm.</p>
+  </section>
+  <section class="app-dialog" id="zoom-dialog" hidden aria-labelledby="zoom-heading">
+    <div class="dialog-heading"><h2 id="zoom-heading">Màn hình LCD</h2><button type="button" data-close-dialog aria-label="Đóng màn hình phóng to">×</button></div>
+    <div id="zoom-viewport"><div id="zoom-device" class="calculator"><div id="zoom-content"></div></div></div>
+    <label class="zoom-control" for="lcd-zoom">Độ phóng đại <input type="range" id="lcd-zoom" min="1" max="2" step="0.25" value="1" /><output id="lcd-zoom-value" for="lcd-zoom">100%</output></label>
+    <p class="app-help">Kéo thanh cuộn để xem khi phóng lớn. Đóng cửa sổ này để tiếp tục nhập bằng phím máy tính.</p>
+  </section>
+  <section class="app-dialog" id="install-dialog" hidden aria-labelledby="install-heading">
+    <div class="dialog-heading"><div><p class="dialog-eyebrow">LUÔN SẴN TRONG THIẾT BỊ</p><h2 id="install-heading">Cài máy tính của bạn</h2></div><button type="button" data-close-dialog aria-label="Đóng hướng dẫn cài">×</button></div>
+    <p class="install-intro">Mở từ một biểu tượng. Tính toán cả khi mất mạng.</p>
+    <p id="install-complete" class="install-notice" hidden>Máy tính đã được cài hoặc đang mở từ biểu tượng ứng dụng. Có thể xem hướng dẫn cho thiết bị khác bên dưới.</p>
+    <div class="install-platforms" role="group" aria-label="Chọn thiết bị để xem hướng dẫn"><button type="button" data-install-platform="ios" aria-pressed="false">iPhone / iPad</button><button type="button" data-install-platform="android" aria-pressed="false">Android</button><button type="button" data-install-platform="desktop" aria-pressed="false">Máy tính</button></div>
+    <div id="install-instructions"><section id="install-ios" hidden><ol class="visual-steps"><li><div class="install-step-copy"><span class="step-index">01</span><h3>Mở bằng Safari</h3><p>Sao chép đường dẫn trang này và mở trong Safari. Không cài từ trình duyệt bên trong Zalo hay Facebook.</p></div><div class="step-art" aria-hidden="true"><div class="browser-symbol"><svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="21"/><path class="compass-north" d="m32 12-5 16-11 8 5-16z"/><path d="m16 36 11-8-6-8z"/></svg><b>Safari</b></div></div></li><li><div class="install-step-copy"><span class="step-index">02</span><h3>Chọn Chia sẻ</h3><p>Bấm biểu tượng Chia sẻ, rồi chọn <b>Thêm vào Màn hình chính</b>. Có thể cần mở nút ⋯ hoặc cuộn danh sách để thấy mục này.</p></div><div class="step-art" aria-hidden="true"><div class="share-demo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 9H4v12h16V9h-4M12 16V2m-4 4 4-4 4 4"/></svg><span>Chia sẻ</span></div><div class="mini-menu-row"><b>⊞</b> Thêm vào Màn hình chính</div></div></li><li><div class="install-step-copy"><span class="step-index">03</span><h3>Thêm và mở ứng dụng</h3><p>Bật <b>Mở dưới dạng ứng dụng web</b> nếu có, rồi bấm <b>Thêm</b>. Trở về màn hình chính và mở biểu tượng 580VN X.</p></div><div class="step-art" aria-hidden="true"><div class="home-demo"><img src="assets/icon-180.png" width="44" height="44" alt="" /><span>580VN X</span></div></div></li></ol></section><section id="install-android" hidden><ol class="visual-steps"><li><div class="install-step-copy"><span class="step-index">01</span><h3>Mở bằng Chrome</h3><p>Mở đường dẫn máy tính trong Chrome. Sau đó bấm nút <b>⋮</b> cạnh thanh địa chỉ.</p></div><div class="step-art" aria-hidden="true"><div class="mini-browser"><span>580VN X</span><b>⋮</b></div><span class="art-caption">Menu của Chrome</span></div></li><li><div class="install-step-copy"><span class="step-index">02</span><h3>Chọn mục cài ứng dụng</h3><p>Chọn <b>Cài đặt và tạo lối tắt → Cài đặt</b>. Một số phiên bản ghi <b>Thêm vào màn hình chính</b>.</p></div><div class="step-art" aria-hidden="true"><div class="mini-menu-row">Cài đặt và tạo lối tắt</div><div class="mini-menu-row selected">↓ Cài đặt</div></div></li><li><div class="install-step-copy"><span class="step-index">03</span><h3>Xác nhận Cài đặt</h3><p>Làm theo cửa sổ xác nhận. Sau đó mở 580VN X từ màn hình chính hoặc danh sách ứng dụng.</p></div><div class="step-art" aria-hidden="true"><div class="home-demo"><img src="assets/icon-180.png" width="44" height="44" alt="" /><span>580VN X</span></div></div></li></ol></section><section id="install-desktop" hidden><ol class="visual-steps"><li><div class="install-step-copy"><span class="step-index">01</span><h3>Mở bằng Chrome hoặc Edge</h3><p>Dùng được trên Windows và macOS. Giữ kết nối mạng trong lần mở đầu tiên.</p></div><div class="step-art" aria-hidden="true"><div class="mini-browser desktop-browser"><span>580VN X</span><b>↓</b></div><span class="art-caption">Biểu tượng cài trên thanh địa chỉ</span></div></li><li><div class="install-step-copy"><span class="step-index">02</span><h3>Bấm Cài ngay</h3><p>Bấm nút bên dưới và xác nhận khi trình duyệt hỏi. Nếu chưa hiện cửa sổ, dùng mục cài ứng dụng trong menu trình duyệt.</p></div><div class="step-art" aria-hidden="true"><div class="mini-install">580VN X<strong>↓ Cài đặt</strong></div></div></li><li><div class="install-step-copy"><span class="step-index">03</span><h3>Mở như một ứng dụng</h3><p>Mở biểu tượng 580VN X. Máy tính chạy trong cửa sổ riêng; dùng bàn phím PC để nhập số và phép tính.</p></div><div class="step-art" aria-hidden="true"><div class="home-demo"><img src="assets/icon-180.png" width="44" height="44" alt="" /><span>580VN X</span></div></div></li></ol><details class="install-alternative"><summary>Dùng Safari trên máy Mac?</summary><p>Trong Safari, chọn <b>Tệp → Thêm vào Dock</b>, rồi xác nhận <b>Thêm</b> (macOS Sonoma trở lên).</p></details></section></div>
+    <p class="illustration-note">Hình minh họa thao tác; vị trí và tên nút có thể khác theo phiên bản trình duyệt.</p>
+    <button class="utility-button install-primary" id="install-now" type="button">Cài ngay</button><p id="install-prompt-status" class="app-help" role="status"></p>
+    <div class="install-offline-check"><span class="offline-symbol" aria-hidden="true">✓</span><div><strong>Kiểm tra trước khi tắt mạng</strong><p>Mở từ biểu tượng vừa cài khi còn mạng. Chờ thông báo sẵn sàng bên dưới, rồi tắt mạng và thử <b>7 × 8 = 56</b>.</p><p id="install-offline-status" role="status" aria-live="polite">Đang kiểm tra dữ liệu ngoại tuyến…</p></div></div>
+    <details class="install-link"><summary>Sao chép đường dẫn để mở đúng trình duyệt</summary><label for="install-url">Đường dẫn máy tính</label><input id="install-url" type="url" readonly /><button class="utility-button" id="install-copy-link" type="button">Sao chép đường dẫn</button><p id="install-copy-status" role="status"></p></details>
+    <p class="app-help guide-note">Gửi góp ý và ảnh vẫn cần mạng. Nếu thiết bị đã xóa dữ liệu ứng dụng, hãy mở lại khi có mạng để tải đủ chương trình.</p>
+  </section>
+  <section class="app-dialog" id="keyboard-dialog" hidden aria-labelledby="keyboard-heading">
+    <div class="dialog-heading"><h2 id="keyboard-heading">Bàn phím PC</h2><button type="button" data-close-dialog aria-label="Đóng hướng dẫn phím tắt">×</button></div>
+    <p class="app-help">Dùng hàng số hoặc bàn phím số bên phải (bật Num Lock). Các phím tương ứng trên máy tính sẽ sáng khi bấm.</p>
+    <dl class="keyboard-help">
+      <dt>0–9 · . hoặc , · + − * / · ( )</dt><dd>Nhập số, dấu thập phân và phép tính</dd>
+      <dt>Enter hoặc =</dt><dd>Tính kết quả / xác nhận</dd>
+      <dt>Backspace</dt><dd>DEL — xóa một ký tự</dd>
+      <dt>Esc hoặc Delete</dt><dd>AC — xóa / thoát menu máy tính</dd>
+      <dt>← ↑ → ↓</dt><dd>Di chuyển con trỏ hoặc chọn mục menu</dd>
+      <dt>F1 · F2</dt><dd>SHIFT · ALPHA (có thể cần giữ Fn trên laptop)</dd>
+      <dt>M · O · C</dt><dd>MENU · OPTN · CALC</dd>
+      <dt>S · K · T · L · N</dt><dd>sin · cos · tan · log cơ số · ln</dd>
+      <dt>R · Q · ^ · F · E</dt><dd>√ · x² · lũy thừa · phân số · ×10ˣ</dd>
+      <dt>X · A · D</dt><dd>Biến x · Ans · S⇔D</dd>
+    </dl>
+    <p class="app-help">Shift trên bàn phím PC dùng để gõ các dấu như +, * và ngoặc; bấm F1 để dùng SHIFT của máy tính. Khi mở góp ý hoặc cửa sổ tiện ích, phím tắt tính toán tạm ngừng.</p>
+  </section>
+  <section class="app-dialog feedback-dialog" id="feedback-dialog" hidden aria-labelledby="feedback-heading">
+    <button class="dialog-close" type="button" data-close-dialog aria-label="Đóng góp ý">×</button>
+      <section class="feedback-panel" aria-labelledby="feedback-heading">
+        <h2 id="feedback-heading">Góp ý sau khi kiểm tra</h2>
+        <p class="feedback-intro">Bạn gặp kết quả chưa đúng hoặc thao tác chưa thuận tiện? Hãy ghi lại để chúng tôi có thể kiểm tra và sửa chính xác.</p>
+        <form id="feedback-form" name="bitex-feedback" method="POST" action="/feedback-success.html" enctype="multipart/form-data" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="bitex-feedback" />
+          <input type="hidden" name="version" value="0.0.0-dev" />
+          <input type="hidden" name="calculator-checkpoint" value="unverified" />
+          <input id="feedback-display" type="hidden" name="calculator-display" value="" />
+          <p hidden><label>Để trống ô này <input name="bot-field" tabindex="-1" autocomplete="off" /></label></p>
+          <label class="feedback-field"><span class="feedback-label">Tiêu đề góp ý</span><input name="title" required maxlength="140" placeholder="Ví dụ: kết quả SOLVE chưa giống máy thật" /></label>
+          <label class="feedback-field"><span class="feedback-label">Nội dung kiểm tra và góp ý</span><textarea name="description" required maxlength="5000" rows="4" placeholder="Bạn đã kiểm tra gì? Bản giả lập hiện ra sao và bạn mong đợi điều gì?"></textarea></label>
+          <label class="feedback-field"><span class="feedback-label">Chuỗi phím và thiết lập <span class="feedback-optional">(nếu có)</span></span><textarea name="key-sequence" maxlength="2000" rows="2" placeholder="Ví dụ: Calculate, Degree → 1 ÷ 3 ="></textarea></label>
+          <label class="feedback-field"><span class="feedback-label">Kết quả trên máy CASIO <span class="feedback-optional">(nếu đã đối chiếu)</span></span><input name="expected-result" maxlength="500" placeholder="Kết quả hoặc thông báo của máy thật" /></label>
+          <span class="feedback-label">Ảnh minh họa <span class="feedback-optional">(không bắt buộc)</span></span>
+          <div class="feedback-upload" id="feedback-upload">
+            <input id="feedback-image" type="file" name="screenshot" accept="image/png,image/jpeg,image/webp" aria-label="Chọn ảnh minh họa" />
+            <span>Chọn ảnh, kéo thả vào khung này hoặc dán ảnh khi đang viết góp ý. PNG, JPG, WEBP · tối đa 5 MB.</span>
+            <figure class="feedback-preview" id="feedback-preview" hidden><img id="feedback-preview-image" alt="Ảnh đính kèm góp ý" /><figcaption id="feedback-filename"></figcaption><button class="feedback-remove" id="feedback-remove" type="button">Bỏ ảnh này</button></figure>
+          </div>
+          <button id="feedback-submit" class="feedback-submit" type="submit">Gửi góp ý</button>
+          <p class="feedback-status" id="feedback-status" role="status" aria-live="polite"></p>
+          <p class="feedback-privacy">Góp ý và ảnh được gửi tới nhóm phụ trách dự án. Chỉ đính kèm phần kiểm tra máy tính; tránh thông tin cá nhân trong ảnh.</p>
+        </form>
+      </section>
+  </section>
+  </dialog>
+  <script src="engine.js"></script>
+  <script src="complex.js"></script>
+  <script src="matrix.js"></script>
+  <script src="vector.js"></script>
+  <script src="verify.js"></script>
+  <script src="coefficient-editor.js"></script>
+  <script src="ratio.js"></script>
+  <script src="equation.js"></script>
+  <script src="inequality.js"></script>
+  <script src="statistics.js"></script>
+  <script src="distribution.js"></script>
+  <script src="base-n.js"></script>
+  <script src="table.js"></script>
+  <script src="keypad.js"></script>
+  <script src="touch.js"></script>
+  <script src="ui.js"></script>
+  <script src="keyboard.js"></script>
+  <script src="feedback.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

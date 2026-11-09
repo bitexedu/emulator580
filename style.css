@@ -1,0 +1,1558 @@
+/* ===== Design tokens — nhận diện BITEX (tự do so với vỏ xám Casio) =====
+   Hướng "thiết bị đo lường chính xác": vỏ than chì trung tính (đỡ ngả xanh
+   công nghệ chung chung) + điểm nhấn ánh lăng kính (holo-chip) lấy cảm hứng
+   từ chính tem chống giả hình hologram dán trên máy BITEX thật (xem
+   docs/giao-dien-may-tinh.png, ngay dưới logo CASIO) — không phải trang trí
+   tùy tiện, mà gắn với một chi tiết thật của sản phẩm. */
+:root {
+  --case-bg-1: #30343b;
+  --case-bg-2: #17191f;
+  --case-edge: rgba(255, 255, 255, 0.09);
+
+  --accent: #e0273f;
+  --accent-2: #ff7a52;
+
+  --holo-1: #6fe3ff;
+  --holo-2: #b98bff;
+  --holo-3: #ffd76f;
+  --holo-4: #ff7ab8;
+
+  --screen-bg: #dbe9d7;
+  --screen-fg: #13261a;
+  --screen-glow: rgba(151, 211, 159, 0.3);
+  --lcd-text-font: Arial, "Helvetica Neue", "Segoe UI", sans-serif;
+  --lcd-font: "Menlo", "SFMono-Regular", "Cascadia Mono", "Consolas", "Liberation Mono", monospace;
+
+  --key-bg: #262c3a;
+  --key-bg-hi: #2f3648;
+  --key-fg: #eef1f7;
+  --key-op-bg: #33475a;
+  --key-op-bg-active: #3f5a72;
+  --key-func-bg: #3a2f4d;
+  --key-func-bg-active: #4a3d61;
+  --key-mem-bg: #2c4438;
+  --key-mem-bg-active: #385a49;
+  --key-mode-bg: #5a4522;
+  --key-mode-bg-active: #6e5629;
+  --key-nav-bg: #232a3a;
+  --key-nav-bg-active: #303a52;
+  --key-wide-bg: #4a2c34;
+  --key-wide-bg-active: #5c3742;
+  --key-equals-bg: linear-gradient(155deg, var(--accent), var(--accent-2));
+  --key-equals-bg-active: linear-gradient(155deg, #c81f36, #e56a45);
+
+  --shift-label-color: #ffc266;
+  --alpha-label-color: #ff5a6e;
+  --locked-opacity: 0.4;
+
+  --radius-case: 22px;
+  --radius-key: 9px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 12px;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255, 255, 255, 0.9), transparent 42%),
+    linear-gradient(145deg, #dfe3e9, #bcc3cd);
+  font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* ===== Vỏ máy ===== */
+/* Hai lớp: khung ngoài (bóng đổ sâu) + viền trong bắt sáng mỏng (inset
+   highlight) mô phỏng cạnh vỏ nhựa đúc thật, có độ dày thấy được. */
+.calculator {
+  position: relative;
+  width: min(410px, calc(100vw - 24px));
+  padding: 19px 20px 24px;
+  border-radius: var(--radius-case);
+  background:
+    linear-gradient(165deg, rgba(255, 255, 255, 0.08), transparent 40%),
+    linear-gradient(175deg, var(--case-bg-1), var(--case-bg-2));
+  box-shadow:
+    0 30px 70px rgba(12, 17, 26, 0.38),
+    0 0 0 1px rgba(0, 0, 0, 0.5),
+    0 1.5px 0 rgba(255, 255, 255, 0.09) inset,
+    0 -20px 40px rgba(0, 0, 0, 0.25) inset;
+}
+
+.calculator::before {
+  position: absolute;
+  inset: 7px;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: calc(var(--radius-case) - 6px);
+  content: "";
+  pointer-events: none;
+}
+
+.brand-strip {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 1px 5px 13px;
+}
+
+/* Chip ánh lăng kính — gợi lại tem chống giả hologram thật của BITEX, thu
+   nhỏ lại làm điểm nhấn thương hiệu duy nhất, không lan ra bàn phím.
+   background-size lớn hơn viewport + animation dịch chuyển vị trí nền tạo
+   cảm giác ánh sáng quét qua khi "nghiêng" — animation duy nhất trong toàn
+   bộ giao diện, tôn trọng prefers-reduced-motion bên dưới. */
+.holo-chip {
+  width: 22px;
+  height: 14px;
+  border-radius: 4px;
+  flex: none;
+  background: linear-gradient(
+    115deg,
+    var(--holo-1), var(--holo-2), var(--holo-3), var(--holo-4), var(--holo-1)
+  );
+  background-size: 300% 100%;
+  box-shadow: 0 0 6px rgba(180, 200, 255, 0.35);
+  animation: holo-sweep 5s ease-in-out infinite;
+}
+
+@keyframes holo-sweep {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-chip {
+    animation: none;
+    background-position: 30% 50%;
+  }
+}
+
+.brand-mark {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--accent);
+}
+
+.brand-sub {
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.52);
+  text-transform: uppercase;
+}
+
+/* ===== Màn hình ===== */
+.screen-wrap {
+  position: relative;
+  --lcd-contrast: 1;
+  margin-bottom: 19px;
+  border: 1px solid #10141a;
+  border-radius: 13px;
+  padding: 5px;
+  background: linear-gradient(165deg, #4b515b, #1d2128 65%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.13) inset,
+    0 5px 10px rgba(0, 0, 0, 0.35) inset,
+    0 2px 0 rgba(255, 255, 255, 0.04);
+}
+
+.screen,
+.screen-badges,
+.mode-corner,
+.overlay {
+  filter: contrast(var(--lcd-contrast));
+}
+
+.contrast-list li {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  text-align: center;
+}
+
+.screen {
+  position: relative;
+  /* ĐÃ XÁC NHẬN CASIO 2026-10-25: LCD 209 × 86 px trên ảnh Chrome.
+     Giữ tỉ lệ vùng phép tính khi phóng lớn; thêm 2.5 px ở tỉ lệ gốc
+     cho khoảng thở dưới chỉ báo theo góp ý người dùng 2026-10-25.
+     Lề và khoảng thêm cùng co theo bề rộng, không ép các dòng phép tính. */
+  aspect-ratio: 209 / 88.5;
+  height: auto;
+  container-type: inline-size;
+  padding: 5.74% 5.44% 3.8%;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.03) 0px,
+      rgba(0, 0, 0, 0.03) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    radial-gradient(120% 160% at 15% 0%, var(--screen-glow), transparent 60%),
+    var(--screen-bg);
+  color: var(--screen-fg);
+  font-size: 34px;
+  font-family: var(--lcd-font);
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  /* ĐÃ XÁC NHẬN 2026-08-17: máy thật NEO biểu thức lên dòng trên cùng và kết
+     quả xuống dòng dưới cùng, chừa khoảng trống ở giữa — không canh giữa theo
+     chiều dọc. Thấy rõ ở 1+2= (biểu thức dòng 1, "3" dòng 4) và ở mọi màn
+     hình nghiệm của Equation/Ratio ("x₁=" trên, giá trị dưới).
+     space-between cho đúng hành vi đó, và khi chỉ có MỘT dòng (đang nhập) thì
+     dòng đó vẫn nằm trên cùng, cũng đúng máy thật. */
+  justify-content: space-between;
+  letter-spacing: 0.02em;
+  overflow: hidden;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: none;
+  box-shadow:
+    0 1px 5px rgba(0, 0, 0, 0.3) inset,
+    0 0 0 1px rgba(23, 54, 33, 0.18) inset;
+}
+
+/* Hàng chỉ báo trên cùng màn hình. ĐÃ XÁC NHẬN 2026-08-17: máy thật gom biểu
+   tượng Math I/O và ô đơn vị góc sát nhau ở góc TRÁI, chừa góc phải cho chỉ
+   báo cuộn ▲▼◀. Không có tên mode. */
+.badge-left {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Chỉ báo bộ nhớ độc lập: chữ M TRẦN (khác ô đơn vị góc, cái đó có viền). */
+.memory-badge {
+  line-height: 1.1;
+}
+
+/* CASIO 2026-10-20: S/A có khung, STO là biểu tượng mũi tên lưu. */
+.modifier-badge {
+  border: 1px solid currentColor;
+  padding: 0 1px;
+  line-height: 1;
+}
+.modifier-badge:empty { display: none; }
+.store-badge svg { display: block; width: 12px; height: 9px; }
+
+/* ===== Mode Statistics ===== */
+
+/* Khung bọc màn hình để nhãn góc đặt tuyệt đối được. */
+.screen-area {
+  position: relative;
+}
+
+/* Nhãn "Statistics / 1-Variable" ở góc phải màn hình tính. */
+.mode-corner {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  text-align: right;
+  white-space: pre-line;
+  font-size: 13px;
+  line-height: 1.2;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+/* Bảng dữ liệu: cột số thứ tự hẹp, cột giá trị canh phải, có vạch dọc hai
+   bên đúng như máy vẽ.
+   Cỡ chữ phải nhỏ hơn dòng kết quả: màn hình cao 160px mà bảng cần SÁU dòng
+   (tiêu đề + 4 dòng dữ liệu + dòng giá trị đầy đủ ở đáy). */
+.stat-table {
+  display: table;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+}
+
+.stat-row {
+  display: table-row;
+}
+
+.stat-index,
+.stat-cell {
+  display: table-cell;
+  padding: 0 6px;
+  line-height: 1.3;
+}
+
+.stat-index {
+  text-align: right;
+  opacity: 0.7;
+}
+
+.stat-cell {
+  min-width: 6.5ch;
+  text-align: right;
+  border-left: 1px solid currentColor;
+  border-right: 1px solid currentColor;
+}
+
+.stat-head .stat-cell {
+  text-align: center;
+  border: 0;
+}
+
+/* Ô đang chọn tô ngược, dùng đúng cặp biến của ô hệ số Ratio/Equation.
+   KHÔNG dùng currentColor cho nền: nó lấy màu chữ CỦA CHÍNH ô đó, mà dòng
+   ngay dưới lại đặt màu chữ thành màu nền — thành ra nền và chữ trùng nhau,
+   ô nhìn như trống. Đã dính đúng lỗi này ngày 2026-08-25. */
+.stat-selected {
+  background: var(--screen-fg);
+  color: var(--screen-bg);
+}
+
+/* Distribution List có hai cột x/P và tên loại ở mép phải. Giảm nhẹ chiều
+   rộng ô so với Statistics để nhãn không đè lên bảng trên màn hình 340px. */
+.distribution-list-table .stat-cell {
+  min-width: 4.2ch;
+  padding-left: 3px;
+  padding-right: 3px;
+  font-size: 17px;
+}
+
+.distribution-list-title {
+  position: absolute;
+  top: 28px;
+  right: 7px;
+  max-width: 8ch;
+  white-space: normal;
+  text-align: right;
+  font-size: 14px;
+  line-height: 1.08;
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+/* Mode Table — màn nhập hàm: nhãn "f(x)=" liền trước biểu thức đang gõ. */
+.table-fn-prompt {
+  margin-right: 2px;
+}
+
+/* Mode Table — hộp thoại Table Range. Tiêu đề rồi ba dòng Start/End/Step;
+   dòng đang chọn tô ngược trên NGUYÊN dòng (khác ô bảng chỉ tô một ô). Font nhỏ
+   hơn dòng nhập chính để cả bốn dòng vừa khít bốn dòng LCD. */
+.table-range {
+  font-size: 26px;
+  line-height: 1.28;
+}
+
+.table-range-title {
+  margin-bottom: 1px;
+}
+
+.table-range-row {
+  display: flex;
+  gap: 4px;
+}
+
+.table-range-active {
+  background: var(--screen-fg);
+  color: var(--screen-bg);
+}
+
+.table-range-value {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Danh sách 1-Variable Calc: nhãn trái, giá trị theo sau. Sáu dòng một
+   trang nên cỡ chữ cũng phải nhỏ như bảng dữ liệu. */
+.stat-list {
+  display: table;
+  font-variant-numeric: tabular-nums;
+  font-size: 19px;
+}
+
+.stat-list-row {
+  display: table-row;
+}
+
+.stat-list-label,
+.stat-list-value {
+  display: table-cell;
+  padding: 0 4px;
+  line-height: 1.2;
+}
+
+.stat-list-label {
+  text-align: left;
+  min-width: 5ch;
+}
+
+/* Chỉ báo Engineer Symbol: chữ E trần, cùng kiểu với FIX/SCI. */
+.engineer-badge {
+  line-height: 1.1;
+}
+
+/* Chỉ báo i/∠ của mode Complex, cùng nhóm trạng thái với E/FIX/SCI. */
+.complex-badge {
+  line-height: 1.1;
+  font-style: italic;
+}
+
+/* Matrix M1 — menu hai cột, hộp chọn kích thước và lưới 1x1..4x4. */
+.matrix-menu,
+.matrix-dimension,
+.matrix-editor {
+  width: 100%;
+  font-size: 19px;
+  line-height: 1.08;
+}
+
+.matrix-menu-title,
+.matrix-dimension-title,
+.matrix-editor-title {
+  margin-bottom: 4px;
+}
+
+.matrix-menu-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 14px;
+}
+
+.matrix-dimension-prompt {
+  max-width: 220px;
+  margin-top: 8px;
+}
+
+.matrix-dimension-select {
+  margin-top: 10px;
+}
+
+.matrix-editor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.matrix-grid {
+  position: relative;
+  display: grid;
+  gap: 1px 8px;
+  min-width: 110px;
+  max-width: 275px;
+  margin-left: 20px;
+  padding: 1px 8px;
+  text-align: right;
+}
+
+.vector-grid {
+  min-width: 62px;
+}
+
+.matrix-grid::before,
+.matrix-grid::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  content: '';
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+}
+
+.matrix-grid::before {
+  left: 0;
+  border-left: 2px solid currentColor;
+}
+
+.matrix-grid::after {
+  right: 0;
+  border-right: 2px solid currentColor;
+}
+
+.matrix-cell {
+  min-width: 36px;
+  padding: 0 2px;
+}
+
+.matrix-cell-selected {
+  color: var(--lcd-bg, #d9ead6);
+  background: #183927;
+}
+
+.matrix-selected-value {
+  align-self: flex-end;
+}
+
+/* Chỉ báo Number Format: chữ FIX/SCI trần, không viền (giống chữ M). */
+.number-format-badge {
+  line-height: 1.1;
+}
+
+/* Đơn vị góc là MỘT chữ trong ô viền, không phải chữ "DEG". */
+.angle-unit-badge {
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  padding: 0 2px;
+  line-height: 1.1;
+}
+
+.screen-badges {
+  position: absolute;
+  top: 3.3cqw;
+  line-height: 1.2;
+  left: 2.72cqw;
+  right: 2.72cqw;
+  display: flex;
+  justify-content: space-between;
+  font-size: 2.72cqw;
+  font-family: var(--lcd-font);
+  font-weight: 700;
+  color: var(--screen-fg);
+  opacity: 0.6;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 5px;
+  border-radius: 8px;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.018) 0,
+      rgba(0, 0, 0, 0.018) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    var(--screen-bg);
+  color: var(--screen-fg);
+  padding: 5.74% 5.44% 3.8%;
+  overflow: hidden;
+  white-space: normal;
+  font-family: var(--lcd-font);
+  font-weight: 600;
+  -webkit-font-smoothing: none;
+}
+
+.overlay-title {
+  min-height: 16px;
+  margin-bottom: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+}
+
+.overlay-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1.32;
+  font-variant-numeric: tabular-nums;
+}
+
+#mode-overlay.overlay-paged {
+  padding-bottom: 22px;
+}
+
+#mode-overlay .overlay-list {
+  font-size: 16px;
+  line-height: 1.38;
+}
+
+.overlay-paged::after {
+  position: absolute;
+  right: 14px;
+  bottom: 5px;
+  content: attr(data-page-label);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.65;
+}
+
+/* Row-major order preserves printed shortcut order across LCD columns. */
+.overlay-list[data-layout="two-column"],
+.overlay-list[data-layout="matrix"],
+.overlay-list[data-layout="three-column"] {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px;
+}
+.overlay-list[data-layout="three-column"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.overlay-list[data-layout="matrix"] > li:nth-child(-n+2) { grid-column: 1 / -1; }
+
+.overlay-list li[data-disabled="true"] {
+  opacity: 0.5;
+}
+
+.overlay-list li[data-disabled="false"] {
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* ===== Bộ soạn thảo hệ số (Tầng 7: Ratio, sau này Equation/Matrix/...) ===== */
+/* Chữ nhỏ hơn dòng kết quả để nhiều ô cùng lọt trong màn hình cao cố định;
+   nhiều ô hơn nữa (Equation 4 ẩn, Matrix...) thì cuộn trong khung này chứ
+   không đẩy màn hình cao lên. */
+.coef-grid {
+  display: grid;
+  justify-content: start;
+  gap: 1px 10px;
+  margin: 1px 0;
+  font-size: 18px;
+  overflow-y: auto;
+  align-self: stretch;
+  /* Không cho flex bóp chiều cao xuống dưới kích thước tự nhiên — nếu bóp,
+     khung sinh thanh cuộn ngay cả khi nội dung vừa đủ chỗ. */
+  flex: 0 0 auto;
+}
+
+.coef-cell {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+.coef-cell-selected {
+  background: var(--screen-fg);
+  color: var(--screen-bg);
+}
+
+/* Mẫu inline: cả tỷ lệ / đa thức nằm trên MỘT dòng, ô đang chọn tô ngược —
+   đúng cách máy thật vẽ màn hình Bộ soạn thảo hệ số (xác nhận 2026-08-17). */
+.coef-template {
+  font-size: 22px;
+  margin-top: 2px;
+}
+
+/* Màn hình lỗi: tên lỗi cỡ chữ thường của dòng biểu thức, hai dòng hướng dẫn
+   nhỏ hơn ở đáy — đúng khuôn máy thật (xác nhận 2026-08-17). */
+.error-title {
+  font-size: 26px;
+}
+
+.error-hints {
+  font-size: 15px;
+  line-height: 1.35;
+  opacity: 0.75;
+}
+
+/* Hệ phương trình: n dòng gom trong một dấu ngoặc nhọn bên trái, đúng cách
+   máy thật vẽ (xác nhận 2026-08-17). Vẽ bằng viền + bo góc thay vì ký tự "{"
+   để dấu ngoặc cao đúng bằng khối, không phụ thuộc font. */
+.coef-block-braced {
+  padding-left: 10px;
+  border-left: 2px solid currentColor;
+  border-top-left-radius: 8px;
+  border-bottom-left-radius: 8px;
+}
+
+/* Ô hệ số trong mẫu inline: gạch chân như ô trống trên máy thật, và luôn rộng
+   tối thiểu một chữ để ô bằng 0 vẫn thấy được chỗ nhập. */
+.coef-slot {
+  display: inline-block;
+  min-width: 1.1em;
+  text-align: center;
+  border-bottom: 1px solid currentColor;
+}
+
+.coef-slot-selected {
+  background: var(--screen-fg);
+  color: var(--screen-bg);
+  border-bottom-color: transparent;
+}
+
+/* Bản đang gõ dở nằm bên TRÁI dòng dưới cùng, khác giá trị đã đăng ký (bên
+   phải) — phân biệt hai trạng thái đúng như máy thật. */
+.screen-line-draft {
+  text-align: left;
+  font-size: 32px;
+}
+
+.coef-label {
+  min-width: 1.4em;
+  opacity: 0.75;
+}
+
+.coef-value {
+  font-weight: bold;
+}
+
+.screen .cursor {
+  animation: blink 1s step-start infinite;
+}
+
+/* ===== Hiển thị tự nhiên (Tầng 5) ===== */
+/* Phân số vẽ tử nằm trên mẫu, ngăn nhau bằng vạch ngang — thay cho kiểu
+   "1/2" một dòng. Dùng inline-flex nên phân số lồng nhau tự thu nhỏ dần. */
+.frac {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+  text-align: center;
+  font-size: 0.72em;
+  line-height: 1.2;
+  margin: 0 2px;
+}
+
+.frac-num {
+  border-bottom: 1.5px solid currentColor;
+  padding: 0 4px;
+}
+
+.frac-den {
+  padding: 0 4px;
+}
+
+/* Dấu căn: nét căn (SVG, xem createRadicalSign trong ui.js) đứng trước, phần
+   thân có vạch ngang bên trên nên vạch tự dài đúng bằng biểu thức nằm trong
+   căn (thay cho kiểu "√(9+7)").
+   line-height: 1 là chỗ then chốt — để mặc định thì hộp dòng của font 28px
+   thừa ra một khoảng trên đỉnh chữ số, mà vạch ngang lại bám mép trên hộp
+   đó nên trông như treo lơ lửng cách xa con số. */
+.radical {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+  line-height: 1;
+  margin: 0 .0625em;
+}
+
+.radical-sign {
+  position: relative;
+  flex: none;
+  align-self: stretch;
+  width: .625em;
+  margin: 0 -.125em .1875em 0;
+}
+.radical-sign svg { position:absolute; bottom:0; left:0; width:100%; height:1em; overflow:visible; }
+.radical-sign::before { content:""; position:absolute; top:0; bottom:1em; left:.5em; width:.0625em; background:currentColor; }
+.radical-body { position:relative; padding:.1875em .125em 0; }
+.radical-body::before { content:""; position:absolute; top:0; left:0; right:0; height:.0625em; background:currentColor; }
+
+/* Số 3 nhỏ ở góc trên bên trái của căn bậc ba */
+.radical-index {
+  align-self: flex-start;
+  font-size: 0.5em;
+  line-height: 1;
+  margin-right: -0.15em;
+}
+
+/* Ô mũ: chữ nhỏ nâng lên cao. Cỡ chữ tính theo em nên mũ lồng mũ tự nhỏ
+   dần, giống phân số lồng nhau. */
+.sup {
+  display: inline-block;
+  vertical-align: super;
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+/* Cơ số của log cơ số bất kỳ: chỉ số DƯỚI nhỏ ngay sau chữ "log". */
+.log-base {
+  display: inline-block;
+  vertical-align: sub;
+  font-size: 0.7em;
+  line-height: 1;
+}
+
+/* Σ (SHIFT+x) và Π (ALPHA+x) — đã xác nhận lần lượt 2026-08-14/2026-09-15:
+   cận trên/dưới xếp chồng CĂN GIỮA ngay trên/dưới ký hiệu, "(" ")" (chữ
+   tĩnh, thêm trực tiếp trong ui.js) bao quanh thân biểu thức. */
+.calc-op {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.calc-op-stack {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  line-height: 1.1;
+}
+
+.calc-op-upper,
+.calc-op-lower {
+  font-size: 0.55em;
+}
+
+.calc-op-symbol {
+  font-size: 1.15em;
+  line-height: 1;
+}
+
+.calc-op-body {
+  margin-left: 1px;
+}
+
+/* ∫ (trần) — ĐÃ XÁC NHẬN với máy thật (ảnh chụp 2026-08-14): cận trên/dưới
+   bám GÓC TRÊN-PHẢI/DƯỚI-PHẢI của ký hiệu ∫ (kiểu số mũ/số dưới của chính
+   ký hiệu) — KHÁC Σ ở trên (không căn giữa phía trên/dưới). "dx" tĩnh đóng
+   cuối, thân KHÔNG có ngoặc quanh (khác Σ). align-items:stretch trên
+   .integral-op + justify-content:space-between trên .integral-bounds là
+   cách dựng cận trên dính đỉnh, cận dưới dính đáy theo chiều cao dòng. */
+.integral-op {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.integral-symbol {
+  align-self: center;
+  font-size: 1.3em;
+  line-height: 1;
+}
+
+.integral-bounds {
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  font-size: 0.55em;
+  line-height: 1;
+  margin-left: -0.1em;
+}
+
+.integral-body,
+.integral-suffix {
+  align-self: center;
+  margin-left: 2px;
+}
+
+/* d/dx — phân số toán tử, thân hàm và vạch thế x=a theo mẫu MathI của
+   fx-580VN X. Giữ các phần inline để mẫu vẫn cuộn ngang cùng biểu thức. */
+.derivative-op {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0 2px;
+}
+
+.derivative-fraction {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  line-height: 1;
+  font-size: 0.72em;
+  margin-right: 2px;
+}
+
+.derivative-numerator {
+  text-align: center;
+  border-bottom: 1px solid currentColor;
+  padding: 0 2px 1px;
+}
+
+.derivative-denominator {
+  padding: 1px 2px 0;
+}
+
+.derivative-body {
+  align-self: center;
+}
+
+.derivative-at {
+  display: inline-flex;
+  align-items: flex-end;
+  align-self: stretch;
+  margin-left: 1px;
+}
+
+.derivative-at-bar {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.25em;
+}
+
+.derivative-point {
+  font-size: 0.58em;
+  line-height: 1;
+  margin: 0 0 1px 1px;
+}
+
+/* Ô trống báo chỗ còn phải nhập (tử hoặc mẫu chưa gõ gì) */
+.slot-empty {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.8em;
+  border: 1px solid currentColor;
+  vertical-align: -.06em;
+  opacity: 1;
+}
+
+/* Dòng đang gõ cuộn ngang được để con trỏ không bị khuất khi biểu thức dài */
+.screen-input {
+  width: 100%;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+
+.screen-input::-webkit-scrollbar {
+  display: none;
+}
+
+.screen-line {
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.screen-line-expr {
+  text-align: left;
+  font-size: 19px;
+  opacity: 0.7;
+}
+
+/* Reserve all 17 LCD columns, including the scroll arrow. Menlo's glyph
+   width is slightly above .6em; tracking must not consume another column. */
+.screen-line-result {
+  text-align: right;
+  font-size: min(32px, calc(100cqw / 10.3));
+  letter-spacing: 0;
+  margin-top: 2px;
+}
+
+/* CALC: tên biến ở trái, vùng giá trị hiện tại được tô ngược trước khi nhập. */
+.calc-field {
+  display: flex;
+  align-items: center;
+  gap: 0.25em;
+  font-size: min(32px, calc(100cqw / 10.2));
+}
+
+.calc-value {
+  flex: 1;
+  min-width: 0;
+  text-align: right;
+  line-height: 1.25;
+}
+
+.calc-selected {
+  background: var(--screen-fg);
+  color: var(--screen-bg);
+  padding: 0 0.15em;
+}
+
+/* L−R giữ đủ nhãn, mantissa và số mũ khi SOLVE chưa hội tụ. */
+.solve-field {
+  font-size: min(26px, calc(100cqw / 13.2));
+}
+
+/* Base-N: chỉ báo cơ số [Dec] ở dòng đầu, căn TRÁI, cỡ chữ như dòng biểu thức. */
+.basen-header {
+  text-align: left;
+  font-size: 19px;
+}
+
+/* Kết quả Base-N: nhị phân 32 bit dài nên PHẢI cho xuống dòng (máy vẽ 2 dòng).
+   Ghi đè cửa sổ cuộn ngang của .screen-line-result: dùng cỡ chữ nhỏ hơn để
+   đủ chỗ, và cho ngắt dòng theo dấu cách giữa các nhóm 4-bit. */
+.basen-result {
+  font-size: min(26px, calc(100cqw / 15));
+  white-space: normal;
+  word-break: break-word;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ===== Bàn phím ===== */
+/* Mỗi .krow là một hàng lưới riêng, số cột khớp đúng nhóm phím trong ảnh
+   docs/giao-dien-may-tinh.png, xếp chồng theo chiều dọc — thay cho lưới 4
+   cột phẳng cũ. ui.js gắn sự kiện qua class .key + data-action nên đổi bố
+   cục/thứ tự DOM ở đây không ảnh hưởng hành vi đã test. */
+.keypad {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.krow {
+  display: grid;
+  gap: 8px;
+}
+
+.krow-top {
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: auto auto;
+}
+
+.krow-6 {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.krow-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.krow-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+/* Phím định hướng: lưới con 3x3, tâm để trống (trang trí), chiếm 2 hàng
+   của khối trên cùng đúng vị trí trong ảnh. grid-column:3 + justify-self +
+   max-width đặt tường minh để nó luôn là khối tròn nằm giữa hàng, không
+   phụ thuộc độ rộng thật của SHIFT/ALPHA/MENU/ON hai bên. */
+.dpad {
+  grid-row: 1 / span 2;
+  grid-column: 3;
+  justify-self: center;
+  align-self: stretch;
+  width: 100%;
+  max-width: 128px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(6, 9, 14, 0.52);
+  border-radius: 50%;
+  padding: 3px;
+}
+
+.dpad-up {
+  grid-column: 2;
+  grid-row: 1;
+  border-radius: 8px 8px 3px 3px;
+}
+
+.dpad-left {
+  grid-column: 1;
+  grid-row: 2;
+  border-radius: 8px 3px 3px 8px;
+}
+
+.dpad-right {
+  grid-column: 3;
+  grid-row: 2;
+  border-radius: 3px 8px 8px 3px;
+}
+
+.dpad-down {
+  grid-column: 2;
+  grid-row: 3;
+  border-radius: 3px 3px 8px 8px;
+}
+
+.dpad-center {
+  grid-column: 2;
+  grid-row: 2;
+  border-radius: 3px;
+  background: var(--case-bg-2);
+}
+
+.key {
+  position: relative;
+  height: 47px;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  border-radius: var(--radius-key);
+  background: var(--key-bg);
+  color: var(--key-fg);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.09) inset,
+    0 4px 0 rgba(5, 7, 11, 0.62),
+    0 6px 8px rgba(0, 0, 0, 0.24);
+  transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.12s ease;
+}
+
+/* Lớp ánh sáng phủ lên trên màu nền riêng của từng loại phím (key-func,
+   key-op...) — ::before tách riêng nên không phải sửa lại từng biến thể
+   màu. Sáng nhẹ ở góc trên-trái, mờ dần, mô phỏng mặt phím nhựa đúc hơi
+   vồng thay vì phẳng lì. */
+.key::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(120% 140% at 28% 18%, rgba(255, 255, 255, 0.14), transparent 60%);
+  pointer-events: none;
+}
+
+.dpad .key {
+  height: auto;
+  box-shadow: none;
+  background: var(--key-nav-bg);
+  font-size: 13px;
+}
+
+.dpad .key:active {
+  background: var(--key-nav-bg-active);
+}
+
+.key:active {
+  background: var(--key-bg-hi);
+  transform: translateY(3px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) inset;
+}
+
+.key:hover:not(.key-locked) {
+  filter: brightness(1.08);
+}
+
+.key:focus-visible {
+  outline: 2px solid rgba(255, 194, 102, 0.95);
+  outline-offset: 2px;
+}
+
+/* Nhãn SHIFT — chức năng phụ ĐÃ cài đặt, giống màu vàng cam trên máy thật.
+   Cỡ chữ tăng so với bản đầu (9px→11px) + đậm hơn, theo góp ý "chữ khó
+   nhìn khi bấm tổ hợp SHIFT/ALPHA". */
+.key-shift-label {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--shift-label-color);
+}
+
+/* Nhãn ALPHA — vị trí biến A-F, màu đỏ giống đúng máy thật. Đặt góc
+   dưới-trái để không đè lên nhãn SHIFT (góc trên-phải). */
+.key-alpha-label {
+  position: absolute;
+  bottom: 3px;
+  left: 5px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--alpha-label-color);
+}
+
+.key-func {
+  background: var(--key-func-bg);
+  font-size: 14px;
+}
+
+.key-func:active {
+  background: var(--key-func-bg-active);
+}
+
+.key-mem {
+  background: var(--key-mem-bg);
+  font-size: 14px;
+}
+
+.key-mem:active {
+  background: var(--key-mem-bg-active);
+}
+
+.key-nav {
+  background: var(--key-nav-bg);
+}
+
+.key-mode {
+  background: var(--key-mode-bg);
+  font-size: 13px;
+}
+
+.key-mode:active {
+  background: var(--key-mode-bg-active);
+}
+
+.key-mode.active {
+  outline: 2px solid var(--shift-label-color);
+  outline-offset: 1px;
+}
+
+.key-op {
+  background: var(--key-op-bg);
+}
+
+.key-op:active {
+  background: var(--key-op-bg-active);
+}
+
+.key-wide {
+  background: var(--key-wide-bg);
+  font-size: 14px;
+}
+
+.key-wide:active {
+  background: var(--key-wide-bg-active);
+}
+
+.key-equals {
+  background: var(--key-equals-bg);
+  color: #fff5f0;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.key-equals:active {
+  background: var(--key-equals-bg-active);
+}
+
+/* Phím có trên máy thật nhưng engine chưa làm tới (OPTN, CALC, ON, ENG,
+   S⇔D, ×10ˣ, Ans, d/dx, Σ▫/∏▫...) — vẽ đủ đúng vị trí/nhãn để giữ đúng
+   hình dạng máy thật, nhưng làm mờ hẳn và không phản hồi khi bấm. */
+.key-locked {
+  opacity: var(--locked-opacity);
+  cursor: not-allowed;
+  font-size: 12px;
+}
+
+.key-locked:active {
+  background: var(--key-bg);
+  transform: none;
+}
+
+.key-icon {
+  font-size: 10px;
+}
+
+@media (max-width: 430px) {
+  body {
+    align-items: flex-start;
+    padding: 8px;
+  }
+
+  .calculator {
+    width: calc(100vw - 16px);
+    padding: 15px 13px 18px;
+    border-radius: 18px;
+  }
+
+  .screen-wrap {
+    margin-bottom: 15px;
+  }
+
+  .keypad,
+  .krow {
+    gap: 6px;
+  }
+
+  .key {
+    height: 44px;
+    font-size: 15px;
+  }
+
+  .key-func,
+  .key-mem,
+  .key-wide,
+  .key-mode {
+    font-size: 12px;
+  }
+
+  .key-shift-label,
+  .key-alpha-label {
+    font-size: 9px;
+  }
+}
+
+
+/* CASIO 2026-10-13 / đo pixel 2026-10-25: cùng phép tính giữ cỡ chữ
+   trước/sau =, kể cả tử/mẫu và ô CALC/SOLVE. Co theo bề rộng LCD. */
+.screen-wrap { container-type: inline-size; }
+.screen { --lcd-math-size: calc(100cqw / 11.36); }
+/* CASIO giữ cỡ chữ ở phân số lồng; kết quả dùng hai hàng dưới bên phải. */
+.screen:has(.math-expression .frac .frac) > .math-result {
+  position: absolute;
+  left: 5.44%;
+  right: 5.44%;
+  bottom: 4.26cqw;
+  width: auto;
+}
+.math-input,
+.math-expression,
+.math-result,
+.math-field {
+  font-size: var(--lcd-math-size);
+  line-height: 1.1;
+  letter-spacing: 0;
+  opacity: 1;
+  flex-shrink: 0;
+}
+/* Thông báo Continue/Tiếp tục có một dòng riêng, cùng cỡ chữ chính.
+   Giữ font văn bản có đủ dấu Việt và khoảng dòng cho dấu thanh. */
+.solve-title.lcd-text {
+  font-size: var(--lcd-math-size);
+  line-height: 1.3;
+  opacity: 1;
+  flex-shrink: 0;
+}
+/* L−R có thể kèm dấu âm và số mũ dài. Chỉ dòng không đủ chỗ mới
+   giảm cỡ theo số cột cần hiển thị; số ngắn giữ cỡ chữ chính. */
+.math-field {
+  font-size: min(var(--lcd-math-size),
+    calc(100cqw / (var(--lcd-field-columns, 17) * .62)));
+}
+.math-field .calc-value { line-height: 1.1; }
+.math-input .frac,
+.math-expression .frac,
+.math-result .frac,
+.math-field .frac {
+  font-size: 1em;
+  line-height: 1;
+}
+.math-input .frac .frac,
+.math-expression .frac .frac,
+.math-result .frac .frac,
+.math-field .frac .frac { font-size: 1em; line-height: .9; }
+
+/* Leave room for radical strokes and fraction descenders at the line edge. */
+.math-expression, .math-result { padding-bottom: 3px; }
+/* Giữ mép mực phân số ở cùng hàng cuối với kết quả một dòng.
+   Inline-flex phân số có phần hộp dòng dư ở trên/dưới nét mực.
+   Bù phần dư để hai phân số chiếm đúng bốn hàng, không đẩy mẫu ra mép LCD. */
+.math-result:has(> .frac) { padding-bottom: .25em; margin-top: -.5em; }
+.math-input:has(> .frac), .math-expression:has(> .frac) { padding-top: .07em; }
+
+/* Menu chuyên biệt: giữ đủ bốn hàng, co đều theo bề rộng LCD. */
+#optn-overlay .overlay-list,
+#optn-overlay .overlay-title,
+.matrix-menu, .matrix-dimension,
+.lcd-menu-line {
+  font-size: calc(100cqw / 17.52);
+  line-height: 1.25;
+  opacity: 1;
+  letter-spacing: 0;
+  text-align: left;
+}
+#optn-overlay .overlay-list > li { white-space: nowrap; }
+.matrix-dimension-prompt { max-width: none; }
+.screen:has(> .lcd-menu-line) { justify-content: flex-start; }
+.lcd-menu-select { margin-top: 18px; }
+
+/* Dense LCD editors: header + four data rows + a complete value line. */
+.stat-table {
+  width: min(100%, calc((2 + var(--data-columns, 2) * 7) * 1ch));
+  table-layout: fixed;
+  font-size: calc(100cqw / 19.94);
+  letter-spacing: 0;
+  flex-shrink: 0;
+}
+.stat-index, .stat-cell { line-height: 1.1; padding: 0 3px; }
+.stat-index { width: 2ch; }
+.stat-cell { min-width: 0; overflow: hidden; white-space: nowrap; }
+.data-value {
+  flex-shrink: 0;
+  font-size: calc(100cqw / 12.27);
+  padding-bottom: 2px;
+}
+.distribution-list-table { width: min(calc(100% - 78px), 16ch); }
+.distribution-list-table .stat-cell { min-width: 0; font-size: inherit; }
+.distribution-list-title { max-width: 70px; line-height: 1.2; opacity: 1; }
+.stat-list, .screen > .stat-list-row {
+  font-size: calc(100cqw / 17.73);
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+.stat-list-label, .stat-list-value { line-height: 1.15; padding: 0 3px; }
+.matrix-editor { font-size: calc(100cqw / 19.94); line-height: 1.1; flex-shrink: 0; }
+.matrix-grid { min-width: 0; max-width: calc(100% - 20px); }
+.matrix-cell { min-width: 0; overflow: hidden; }
+.table-range { width: 100%; font-size: calc(100cqw / 14.5); letter-spacing: 0; }
+.table-range-value { min-width: 0; overflow: hidden; }
+
+/* Coefficient templates keep the selected cell in view without scrollbars. */
+.coefficient-top { width: 100%; min-width: 0; flex-shrink: 0; }
+.coefficient-heading {
+  white-space: pre-line;
+  font-size: calc(100cqw / 15.2);
+  line-height: 1.15;
+  letter-spacing: 0;
+  opacity: 1;
+}
+.coef-block { width: 100%; }
+.coef-block-braced .coef-template { font-size: calc(100cqw / 16.79); line-height: 1.1; letter-spacing: 0; }
+.screen:has(.coef-block-braced) > .screen-line-result,
+.screen:has(.coef-block-braced) > .screen-line-draft {
+  flex-shrink: 0;
+  font-size: calc(100cqw / 12.27);
+}
+.error-title { font-size: calc(100cqw / 12.27); letter-spacing: 0; }
+.error-hints { font-size: calc(100cqw / 15.2); letter-spacing: 0; opacity: 1; }
+
+.data-draft { text-align: left; overflow-x: auto; }
+.coef-template { padding-right: 4px; }
+.screen:has(.data-value .frac) .matrix-editor { font-size: 14px; }
+.screen:has(> .screen-line-draft .frac) .coef-block-braced .coef-template { font-size: 17px; }
+.screen:has(> .screen-line-draft .frac .frac) .coef-block-braced .coef-template { font-size: 14px; }
+
+/* Human-readable LCD labels need complete, smooth Vietnamese diacritics.
+   Formula nodes, numeric cells and math menu icons keep the existing font. */
+.lcd-text, .overlay-title, .overlay-list,
+.lcd-menu-line, .matrix-menu, .matrix-dimension,
+.mode-corner, .distribution-list-title,
+.table-range-title, .table-range-label, .error-title, .error-hints {
+  font-family: var(--lcd-text-font);
+  font-weight: 600;
+  letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+}
+.lcd-text, .lcd-menu-line, .matrix-dimension, .error-title {
+  line-height: 1.3;
+}
+.coefficient-heading { line-height: 1.3; }
+
+/* CONST có tối đa sáu hàng; giữ đủ hàng M/x trong LCD cố định. */
+#optn-overlay .overlay-list[data-layout="scientific-grid"] {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  column-gap: 8px;
+  font-size: min(19px, calc((100vw - 88px) / 15.5));
+  line-height: 1.12;
+}
+.scientific-symbol { font-family: "Times New Roman", serif; }
+.scientific-symbol sub { font-size: .65em; line-height: 0; vertical-align: -.25em; }
+
+#optn-overlay[data-kind="constants"] { padding: 9px 12px 10px; }
+#optn-overlay[data-kind="constants"]::after {
+  content: attr(data-scroll); position: absolute; top: 2px; right: 7px; font-size: 10px;
+}
+.screen-wrap:has(#optn-overlay[data-kind="constants"]:not([hidden])) .screen-badges { visibility: hidden; }
+
+/* CONV có hai cột, tối đa sáu hàng; tên đơn vị giữ đủ ký tự. */
+#optn-overlay .overlay-list[data-layout="conversion-grid"] {
+  display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 8px; font-size: min(19px, calc((100vw - 88px) / 15.5)); line-height: 1.12;
+}
+
+/* ÷R: hai dòng thương/số dư giữ cùng cỡ chữ với kết quả số. */
+.remainder-field { font-size: min(32px, calc(100cqw / 10.3)); line-height: 1.05; }
+.remainder-field .calc-value { font-size: inherit; line-height: inherit; }
+
+/* RESET: bốn dòng theo LCD CASIO, dùng font đủ dấu ở cả hai ngôn ngữ. */
+#optn-overlay[data-kind="reset"] { padding: 9px 12px 10px; }
+#optn-overlay[data-kind="reset"] .overlay-title,
+#optn-overlay[data-kind="reset"] .overlay-list {
+  font-size: min(22px, calc((100vw - 88px) / 14)); line-height: 1.3;
+}
+#optn-overlay[data-kind="reset"] .overlay-title { margin: 0; }
+#optn-overlay[data-kind="reset"]:not([data-phase="menu"]) .overlay-title,
+.reset-finish { text-align: center; }
+#optn-overlay[data-kind="reset"] .reset-line { cursor: default; padding: 0; }
+.screen-wrap:has(#optn-overlay[data-kind="reset"]:not([hidden])) .screen-badges { visibility: hidden; }
+
+/* INS ghi đè: con trỏ gạch dưới, không đổi font/kích thước biểu thức. */
+.screen[data-overwrite="true"] .cursor {
+  display: inline-block; width: .62em; margin-right: -.62em;
+  color: transparent; line-height: 1;
+  border-bottom: 2px solid var(--lcd-ink, #17291b);
+}
+
+/* CASIO 2026-10-20: LineI đặt kết quả ngay dòng sau biểu thức.
+   Chỉ áp dụng kết quả Calculate, không đổi MathI hay màn dữ liệu/menu. */
+.screen:has(> .math-expression.line-output) { justify-content: flex-start; }
+
+/* Khung chu kỳ mới để ô trống luôn rõ, như ‹□› trên LCD CASIO. */
+.recurring-input .slot-empty { height: .65em; border-style: solid; opacity: 1; }
+
+/* Phiếu BITEX 010/017..020, CASIO 2026-10-20: giữ nguyên cỡ toán học. */
+.math-parentheses { display:inline-flex; align-items:baseline; vertical-align:baseline; }
+.paren-body { display:inline-block; }
+.math-parenthesis {
+  display:inline-block; align-self:stretch; flex:none; width:.3em;
+  overflow:hidden; text-indent:-9999px; border-radius:50%;
+}
+.paren-open { border-left:1.5px solid currentColor; margin-right:.04em; }
+.paren-close { border-right:1.5px solid currentColor; margin-left:.04em; }
+.radical { align-items:baseline; vertical-align:baseline; }
+/* Con trỏ chèn là nét LCD riêng, không lấy chiều cao/baseline của ký tự |.
+   Ảnh CASIO: nét 2 px / chữ số cao 12 px; thu theo ô mũ và phân số lồng. */
+.screen .cursor:not(.slot-empty) {
+  position: relative;
+  display: inline-block;
+  width: 0;
+  height: .82em;
+  vertical-align: -.08em;
+  overflow: visible;
+  color: transparent;
+}
+.screen .cursor:not(.slot-empty)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: .11em;
+  height: 100%;
+  background: var(--screen-fg);
+}
+/* AC là nét chèn; ô chưa nhập trong mẫu phân số vẫn là khung rỗng. */
+.screen .math-input > .slot-empty.cursor,
+.screen .calc-value > .slot-empty.cursor {
+  width: 0;
+  height: .82em;
+  vertical-align: -.08em;
+  border: 0;
+  border-left: .11em solid currentColor;
+  opacity: 1;
+}
+.screen[data-overwrite="true"] .cursor:not(.slot-empty)::after {
+  top: auto;
+  bottom: -.08em;
+  width: .62em;
+  height: .07em;
+}
+.screen[data-overwrite="true"] .cursor { width: 0; margin-right: 0; border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .screen .cursor { animation: none; }
+}
+.unary-negative { display:inline-block; width:.65ch; transform:scaleX(.6); transform-origin:left center; }
+.calc-input-field { gap:0; }
+.calc-input-field .calc-value { text-align:left; }
+.calc-input-field.calc-field-selected { background:var(--screen-fg); color:var(--screen-bg); }
+.calc-input-field .calc-selected { padding:0; background:transparent; color:inherit; }
+
+/* RECALL: năm hàng, hai cột A/B, C/D, E/F, M/x, y/z; không có tiêu đề. */
+#recall-overlay .overlay-title { display:none; }
+#recall-list {
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); column-gap:1ch;
+  font-family:var(--lcd-font); font-size:min(18px,calc(100cqw / 20.5)); line-height:1.15;
+}
+#recall-list > li { min-width:0; padding:0; white-space:nowrap; overflow:hidden; opacity:1; }
+
+/* Các màn chữ trần dùng hàng cuối LCD. */
+.screen-terminal-message { margin-top:auto; font-size:min(21px,calc(100cqw / 17.5)); }
+.mode-corner[data-kind="verify"] { font-size:min(18px,calc(100cqw / 20.5)); opacity:1; }
+.screen[data-empty-verify="true"] .slot-empty.cursor { width:0; height:1em; margin:0; border:0; border-left:2px solid currentColor; background:transparent; }
+.distribution-form { font-size:min(21px,calc(100cqw / 17.5)); line-height:1.2; }
+.distribution-field { display:flex; align-items:baseline; gap:0; min-width:0; line-height:1.2; }
+.distribution-field-selected { background:var(--screen-fg); color:var(--screen-bg); }
+.distribution-field-value { min-width:0; overflow:hidden; white-space:nowrap; }
+
+/* CASIO: con trỏ khối khi dung lượng nhập còn tối đa mười byte. */
+.screen[data-input-warning="true"] .cursor { position:relative; color:transparent; }
+.screen[data-input-warning="true"] .cursor::after {
+  content:""; position:absolute; left:0; top:0.05em; width:.65em; height:.9em;
+  background:var(--screen-fg);
+}
+
+/* SETUP đo trực tiếp 2026-10-25: 4 hàng, bước hàng ~15.5/209 bề rộng.
+   Menlo cho bước ký tự đều như LCD; tiếng Việt dành thêm chỗ cho dấu. */
+#setup-overlay .overlay-list,
+#setup-overlay .overlay-title {
+  font-family: var(--lcd-font);
+  font-size: calc(100cqw / 13.2);
+  line-height: .98;
+}
+.screen-wrap[data-language="vi"] #setup-overlay {
+  padding-top: 6.82%;
+}
+.screen-wrap[data-language="vi"] #setup-overlay .overlay-list,
+.screen-wrap[data-language="vi"] #setup-overlay .overlay-title {
+  font-size: calc(100cqw / 14.45);
+  line-height: 1.07;
+}
+
+/* Bảng dữ liệu có header + bốn hàng + dòng nhập. Lề dọc riêng tránh cắt
+   dòng nhập khi LCD thu nhỏ, trong khi tất cả cỡ chữ cùng co theo bề rộng. */
+.screen:has(> .stat-table, > .matrix-editor, .coef-block-braced) {
+  padding-top: 5.22%;
+  padding-bottom: 2.3%;
+}
