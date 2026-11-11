@@ -31,6 +31,18 @@ if (metadataPath) {
   }
 }
 
+// Chỉ cấu hình lúc đóng gói. Trang nhúng không thể tự cấp quyền qua URL.
+const exportOrigins = [...new Set((process.env.BITEX_EXPORT_ORIGINS || '').trim().split(/\s+/).filter(Boolean))];
+for (const origin of exportOrigins) {
+  let url;
+  try { url = new URL(origin); } catch { /* Kiểm tra bên dưới. */ }
+  const local = url && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+  if (!url || url.origin !== origin || /[^A-Za-z0-9.:[\]/-]/.test(origin) ||
+      (url.protocol !== 'https:' && !(url.protocol === 'http:' && local))) {
+    throw new Error('BITEX_EXPORT_ORIGINS cần origin HTTPS chính xác, hoặc HTTP loopback để thử cục bộ.');
+  }
+}
+
 const files = new Map();
 function add(reference, from = 'index.html') {
   if (!reference || reference === '/' || reference.startsWith('#') || reference.startsWith('data:')) return;
@@ -50,6 +62,8 @@ function add(reference, from = 'index.html') {
 for (const name of ['index.html','feedback-success.html','_headers','robots.txt','sw.js','assets/menu-tiles.svg','assets/device-face-blue.svg','assets/device-face-pink.svg']) add(name);
 // Stamp before hashing, so displayed/feedback versions participate in the offline cache ID.
 const markers = new Map([
+  ['name="bitex-export-origins" content=""',
+    'name="bitex-export-origins" content="' + exportOrigins.join(' ') + '"'],
   ['<small id="release-version">Bản mã nguồn</small>',
     '<small id="release-version">Phiên bản ' + identity.version +
     (requested ? ' · ' + identity.calculatorCheckpoint.slice(0, 7) : '') + '</small>'],

@@ -1,7 +1,7 @@
 'use strict';
 // Build-release thay ID bằng hash cả gói để mỗi bản cache là một bộ đồng nhất.
 const CACHE_NAME = 'calculator-shell-v13-rc1';
-const SHELL_FILES = ["index.html","style.css","device.css","feedback.css","engine.js","complex.js","matrix.js","vector.js","verify.js","coefficient-editor.js","ratio.js","equation.js","inequality.js","statistics.js","distribution.js","base-n.js","table.js","keypad.js","ui.js","touch.js","keyboard.js","feedback.js","app.js","manifest.webmanifest","assets/device-face.svg","assets/device-face-blue.svg","assets/device-face-pink.svg","assets/menu-tiles.svg","assets/lcd-numerals.ttf","assets/lcd-text.ttf","assets/icon-180.png","assets/icon-192.png","assets/icon-512.png"];
+const SHELL_FILES = ["index.html","style.css","device.css","feedback.css","engine.js","complex.js","matrix.js","vector.js","verify.js","coefficient-editor.js","ratio.js","equation.js","inequality.js","statistics.js","distribution.js","base-n.js","table.js","keypad.js","ui.js","bridge.js","touch.js","keyboard.js","feedback.js","app.js","manifest.webmanifest","assets/device-face.svg","assets/device-face-blue.svg","assets/device-face-pink.svg","assets/menu-tiles.svg","assets/lcd-numerals.ttf","assets/lcd-text.ttf","assets/icon-180.png","assets/icon-192.png","assets/icon-512.png"];
 const urls = SHELL_FILES.map(file => new URL(file, self.registration.scope).href);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
