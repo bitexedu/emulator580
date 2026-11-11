@@ -3406,12 +3406,7 @@ function cloneNodes(nodes) {
   });
 }
 
-// Dịch cây thành chuỗi để TÍNH. Mọi mẫu đều bọc vùng nhập trong dấu ngoặc và
-// dùng lại đúng ký hiệu bộ tính toán đã hiểu sẵn (÷, √, ∛, ^), nên thứ tự ưu
-// tiên tự khắc đúng mà không phải sửa bộ tính toán.
-// Vùng nhập còn rỗng dịch ra "√()" hoặc "^()" — bộ tính toán sẵn có tự báo
-// Syntax ERROR, không lọt NaN lên màn hình.
-function serializeForEval(nodes) {
+function groupCalculationNodes(nodes) {
   // Phím ×10ˣ gắn với phần số liền trước thành MỘT số khoa học.
   // CASIO 2026-10-05: 1÷2×10³ = 1/2000; không phải (1÷2)×10³.
   // Chỉ gom tại lúc dịch cây, không đổi node/con trỏ/cách vẽ biểu thức.
@@ -3440,6 +3435,13 @@ function serializeForEval(nodes) {
     }
     grouped.push(node);
   }
+  return grouped;
+}
+
+// Dịch cây để tính, dùng lại ký hiệu bộ đánh giá hiểu sẵn. Ô mẫu còn rỗng
+// được giữ trong chuỗi để bộ đánh giá báo Syntax ERROR.
+function serializeForEval(nodes) {
+  const grouped = groupCalculationNodes(nodes);
   return grouped.map((node, index) => {
     // Phím (-) là dấu âm một ngôi, không phải phím trừ. Giữ cờ trong cây
     // để chỉ báo Syntax ERROR lúc tính, kể cả sau khi sửa/lưu biểu thức.
@@ -3513,8 +3515,141 @@ function serializeForEval(nodes) {
   }).join('');
 }
 
-// Dịch cây thành chuỗi một dòng để HIỂN THỊ dạng văn bản (getDisplay và
-// getState().buffer) — giữ cho phần đã có từ Tầng 0-4 hoạt động y như cũ.
+// Dịch cây thành chuỗi TRAO ĐỔI một dòng cho ứng dụng khác (cổng xuất dữ
+// liệu, bridge.js). Cú pháp trung tính, chỉ ASCII: + - * / ^ ( ) , số thập
+// phân dấu chấm, hằng pi và e, hàm sqrt cbrt root(x,n) abs ln log10
+// logb(b,x) sin cos tan asin acos atan sinh cosh tanh asinh acosh atanh.
+// Đối số lượng giác theo đơn vị góc đi kèm dữ liệu (angleUnit).
+// Trả null khi biểu thức có thành phần không dịch được (Σ, ∫, d/dx, biến
+// nhớ, Ans…): bên nhận khi đó chỉ dùng số liệu, không dùng biểu thức.
+const EXCHANGE_FUNCS = [
+  ['sinh⁻¹(', 'asinh('], ['cosh⁻¹(', 'acosh('], ['tanh⁻¹(', 'atanh('],
+  ['sin⁻¹(', 'asin('], ['cos⁻¹(', 'acos('], ['tan⁻¹(', 'atan('],
+  ['sinh(', 'sinh('], ['cosh(', 'cosh('], ['tanh(', 'tanh('],
+  ['sin(', 'sin('], ['cos(', 'cos('], ['tan(', 'tan('],
+  ['log(', 'log10('], ['ln(', 'ln('], ['Abs(', 'abs('], ['√(', 'sqrt(']
+];
+const EXCHANGE_CHARS = { '×': '*', '÷': '/', '−': '-', 'π': 'pi' };
+function exchangeSource(nodes) {
+  if (!nodes.length) throw new EngineError('exchange');
+  let text = '';
+  for (const node of groupCalculationNodes(nodes)) {
+    switch (node.type) {
+      case 'frac': text += '((' + exchangeSource(node.num) + ')/(' + exchangeSource(node.den) + '))'; break;
+      case 'sqrt': text += 'sqrt(' + exchangeSource(node.arg) + ')'; break;
+      case 'cbrt': text += 'cbrt(' + exchangeSource(node.arg) + ')'; break;
+      case 'abs': text += 'abs(' + exchangeSource(node.arg) + ')'; break;
+      case 'sup': text += '^(' + exchangeSource(node.exp) + ')'; break;
+      case 'pow10': text += '(10)^(' + exchangeSource(node.exp) + ')'; break;
+      case 'scientific': text += '(' + exchangeSource(node.mantissa) + '*10^(' + exchangeSource(node.exp) + '))'; break;
+      case 'times10': text += '*10^(' + exchangeSource(node.exp) + ')'; break;
+      case 'epow': text += 'e^(' + exchangeSource(node.exp) + ')'; break;
+      case 'nthroot': text += 'root(' + exchangeSource(node.arg) + ',' + exchangeSource(node.idx) + ')'; break;
+      case 'logn': text += 'logb(' + exchangeSource(node.base) + ',' + exchangeSource(node.arg) + ')'; break;
+      case 'mixed': text += '(' + exchangeSource(node.int) + '+(' + exchangeSource(node.num) + ')/(' + exchangeSource(node.den) + '))'; break;
+      case 'char':
+        if (node.constant || node.stat || node.eng || node.conversion || node.combinatoric || node.complexOutput) {
+          throw new EngineError('exchange');
+        }
+        text += EXCHANGE_CHARS[node.ch] || node.ch;
+        break;
+      default: throw new EngineError('exchange');
+    }
+  }
+  return text;
+}
+
+// Chỉ chuẩn hóa tập cú pháp đã công bố. Nhân ẩn chặt hơn ×/÷ trên máy,
+// nên ghi rõ dấu nhân và ngoặc: 1÷2π xuất thành 1/(2*pi).
+function normalizeExchangeExpression(text) {
+  const lexeme = /(?:\d+(?:\.\d*)?|\.\d+|log10|logb|sqrt|cbrt|root|abs|ln|a?(?:sin|cos|tan)h?|pi|x|e|⁻¹|[²³+*/^(),-])/gy;
+  const tokens = [];
+  for (let offset = 0; offset < text.length;) {
+    const match = lexeme.exec(text);
+    if (!match) throw new EngineError('exchange');
+    tokens.push(match[0]);
+    offset = lexeme.lastIndex;
+  }
+  let i = 0;
+  const take = token => {
+    if (tokens[i] !== token) return false;
+    i++;
+    return true;
+  };
+  const expect = token => {
+    if (!take(token)) throw new EngineError('exchange');
+  };
+  const startsAtom = () => /^(?:[a-z]|[0-9.]|\()/.test(tokens[i] || '');
+  const suffixes = { '²': '2', '³': '3', '⁻¹': '(-1)' };
+  function atom() {
+    if (take('(')) {
+      const value = sum();
+      expect(')');
+      return '(' + value + ')';
+    }
+    if (!startsAtom()) throw new EngineError('exchange');
+    const token = tokens[i++];
+    if (!/^[a-z]/.test(token) || ['x', 'e', 'pi'].includes(token)) return token;
+    expect('(');
+    const first = sum();
+    let args = first;
+    if (token === 'logb' || token === 'root') {
+      expect(',');
+      args += ',' + sum();
+    }
+    expect(')');
+    return token + '(' + args + ')';
+  }
+  function power() {
+    let value = atom();
+    while (Object.hasOwn(suffixes, tokens[i])) {
+      const exponent = suffixes[tokens[i++]];
+      value = '(' + value + '^' + exponent + ')';
+    }
+    return take('^') ? value + '^' + power() : value;
+  }
+  function signedFactor() {
+    let sign = '';
+    while (tokens[i] === '+' || tokens[i] === '-') sign += tokens[i++];
+    const factors = [power()];
+    while (startsAtom()) factors.push(power());
+    return sign + (factors.length === 1 ? factors[0] : '(' + factors.join('*') + ')');
+  }
+  function product() {
+    let value = signedFactor();
+    while (tokens[i] === '*' || tokens[i] === '/') {
+      const operator = tokens[i++];
+      value += operator + signedFactor();
+    }
+    return value;
+  }
+  function sum() {
+    let value = product();
+    while (tokens[i] === '+' || tokens[i] === '-') {
+      const operator = tokens[i++];
+      value += operator + product();
+    }
+    return value;
+  }
+  const expression = sum();
+  if (i !== tokens.length) throw new EngineError('exchange');
+  return expression;
+}
+
+function serializeForExchange(nodes) {
+  try {
+    let text = exchangeSource(nodes);
+    for (const [from, to] of EXCHANGE_FUNCS) text = text.split(from).join(to);
+    // Giữ kiểm tra dấu âm một ngôi giống máy, cả khi bản nháp chưa được tính.
+    serializeForEval(nodes);
+    return normalizeExchangeExpression(autoCloseParens(text));
+  } catch (error) {
+    if (error instanceof EngineError) return null;
+    throw error;
+  }
+}
+
+// Dịch cây thành chuỗi một dòng để hiển thị (getDisplay và getState().buffer).
 function serializeForDisplay(nodes) {
   return nodes.map((node) => {
     switch (node.type) {
@@ -6816,6 +6951,7 @@ function createEngine(options = {}) {
       nodes: evalResult.nodes,
       expression: evalResult.closedExpr,
       value: evalResult.value,
+      angleUnit,
       coordinateResult: evalResult.coordinateResult || null,
       remainderResult: evalResult.remainderResult || null,
       exact: evalResult.exact,
@@ -7693,6 +7829,17 @@ function createEngine(options = {}) {
         return type;
       },
 
+      // Cổng xuất dữ liệu (bridge.js): kiểu và bảng số liệu đang nhập.
+      exportData() {
+        return {
+          type: type.id,
+          label: type.label,
+          twoVar: !!type.twoVar,
+          frequency: !!statisticsFrequency,
+          rows: rows.map(r => ({ x: Number(r.x), y: Number(r.y), f: Number(r.f) }))
+        };
+      },
+
       getState() {
         if (screen === 'stats') {
           const stats = compute();
@@ -8001,6 +8148,7 @@ function createEngine(options = {}) {
     let xs = [];
     let fVals = [];
     let gVals = [];
+    let rowsAngleUnit = null;
     let cursorRow = 0;
     let cursorCol = 0;           // 0=x, 1=f, 2=g
 
@@ -8017,6 +8165,9 @@ function createEngine(options = {}) {
     // Đặt x của dòng `i` = `xVal` rồi tính lại f/g dòng đó TẠI CHỖ. i == xs.length
     // nghĩa là điền dòng trống nới (thêm dòng mới). Không sắp lại — x lộn xộn được.
     function setRowX(i, xVal) {
+      // Nếu chỉnh một dòng sau khi đổi đơn vị góc, bảng có thể chứa cả
+      // hai đơn vị. Chỉ xuất lại các dòng sau khi sinh toàn bộ bảng.
+      if (rowsAngleUnit !== angleUnit) rowsAngleUnit = null;
       xs[i] = xVal;
       fVals[i] = evalAt(fNodes, xVal);
       if (hasG()) gVals[i] = evalAt(gNodes, xVal);
@@ -8086,6 +8237,7 @@ function createEngine(options = {}) {
       if (g) validateFn(gNodes);
       fVals = xs.map((xi) => evalAt(fNodes, xi));
       gVals = g ? xs.map((xi) => evalAt(gNodes, xi)) : [];
+      rowsAngleUnit = angleUnit;
       cursorRow = 0;
       cursorCol = 0;
     }
@@ -8251,6 +8403,22 @@ function createEngine(options = {}) {
 
       hasExactForm() {
         return false;
+      },
+
+      // Cổng xuất dữ liệu (bridge.js): hàm f, g (chuỗi trao đổi và chuỗi hiển
+      // thị), khoảng Start/End/Step và các dòng đã sinh. Ô lỗi là null.
+      exportData() {
+        const num = v => (typeof v === 'number' && Number.isFinite(v) ? v : null);
+        const hasGeneratedRows = screen === 'table' && mode !== 'error' && rowsAngleUnit === angleUnit;
+        const g = hasG();
+        return {
+          f: fNodes.length ? serializeForExchange(fNodes) : null,
+          fText: fNodes.length ? serializeForDisplay(fNodes) : '',
+          g: g ? serializeForExchange(gNodes) : null,
+          gText: g ? serializeForDisplay(gNodes) : '',
+          start: num(start), end: num(end), step: num(step),
+          rows: hasGeneratedRows ? xs.map((x, i) => ({ x: num(x), f: num(fVals[i]), g: g ? num(gVals[i]) : null })) : []
+        };
       },
 
       getState() {
@@ -9194,6 +9362,33 @@ function createEngine(options = {}) {
 
     getCalcMode() {
       return calcMode;
+    },
+
+    // Cổng xuất dữ liệu cho ứng dụng khác (bridge.js, xem docs/CONG-XUAT-DU-LIEU.md).
+    // Chỉ ĐỌC trạng thái, không đổi màn hình, con trỏ hay phép tính.
+    // v: phiên bản định dạng. Tính toán: biểu thức (nhập đang gõ hoặc mục kết
+    // quả đang xem) và giá trị; Bảng, Thống kê: do handler của mode trả.
+    exportData() {
+      const base = { v: 1, mode: calcMode, angleUnit };
+      if (modeHandler && typeof modeHandler.exportData === 'function') {
+        return { ...base, ...modeHandler.exportData() };
+      }
+      if (calcMode === 'calculate') {
+        if (calcSession?.phase === 'form' || calcSession?.operation === 'solve') {
+          return { ...base, unsupported: true };
+        }
+        const entry = mode === 'result' ? viewEntry() : null;
+        const nodes = entry?.nodes || (mode === 'input' ? root : []);
+        const value = Number.isFinite(entry?.value) ? entry.value : null;
+        return {
+          ...base,
+          angleUnit: entry?.angleUnit ?? angleUnit,
+          expr: !entry?.calc && nodes.length ? serializeForExchange(nodes) : null,
+          text: nodes.length ? serializeForDisplay(nodes) : '',
+          value
+        };
+      }
+      return { ...base, unsupported: true };
     },
 
     // Các lệnh điều hướng màn hình của OPTN Matrix.
